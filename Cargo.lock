@@ -159,7 +159,7 @@ version = "0.1.0"
 dependencies = [
  "nota-codec",
  "rkyv",
- "signal-core",
+ "signal-frame",
  "signal-persona-orchestrate",
  "thiserror",
 ]
@@ -277,6 +277,27 @@ dependencies = [
 name = "signal-core-macros"
 version = "0.1.0"
 source = "git+https://github.com/LiGoldragon/signal-core.git#5762bba19a118cedc9fc7edcb1237f9a53d444aa"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "signal-frame"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#4bdf1e1e706477c213259c8f661ee2787d48377c"
+dependencies = [
+ "nota-codec",
+ "rkyv",
+ "signal-frame-macros",
+ "thiserror",
+]
+
+[[package]]
+name = "signal-frame-macros"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#4bdf1e1e706477c213259c8f661ee2787d48377c"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -1,13 +1,13 @@
 use owner_signal_persona_orchestrate::{
-    CreateRoleOrder, Frame, FrameBody, HarnessKind, OwnerOrchestrateOperationKind,
-    OwnerOrchestrateReply, OwnerOrchestrateRequest, OwnerOrchestrateRequestUnimplemented,
+    CreateRoleOrder, Frame, FrameBody, HarnessKind, OwnerOperationKind, OwnerOrchestrateReply,
+    OwnerOrchestrateRequest, OwnerOrchestrateRequestUnimplemented,
     OwnerOrchestrateUnimplementedReason, RefreshRepositoryIndexOrder, RepositoryIndexRefreshed,
     RetireRoleOrder, RoleCreated, RoleCreationRejected, RoleCreationRejectionReason,
     RoleIdentifier, RoleRetired, WirePath,
 };
-use signal_core::{
+use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
-    SignalVerb, SubReply,
+    SubReply,
 };
 
 fn role() -> RoleIdentifier {
@@ -32,7 +32,6 @@ fn exchange() -> ExchangeIdentifier {
 }
 
 fn round_trip_request(request: OwnerOrchestrateRequest) -> OwnerOrchestrateRequest {
-    let expected_verb = request.signal_verb();
     let frame = Frame::new(FrameBody::Request {
         exchange: exchange(),
         request: request.into_request(),
@@ -41,9 +40,8 @@ fn round_trip_request(request: OwnerOrchestrateRequest) -> OwnerOrchestrateReque
     let decoded = Frame::decode_length_prefixed(&bytes).expect("decode");
     match decoded.into_body() {
         FrameBody::Request { request, .. } => {
-            let operation = request.operations().head();
-            assert_eq!(operation.verb, expected_verb);
-            operation.payload.clone()
+            let operation = request.payloads().head();
+            operation.clone()
         }
         other => panic!("expected request operation, got {other:?}"),
     }
@@ -52,10 +50,7 @@ fn round_trip_request(request: OwnerOrchestrateRequest) -> OwnerOrchestrateReque
 fn round_trip_reply(reply: OwnerOrchestrateReply) -> OwnerOrchestrateReply {
     let frame = Frame::new(FrameBody::Reply {
         exchange: exchange(),
-        reply: Reply::completed(NonEmpty::single(SubReply::Ok {
-            verb: SignalVerb::Assert,
-            payload: reply,
-        })),
+        reply: Reply::completed(NonEmpty::single(SubReply::Ok { payload: reply })),
     });
     let bytes = frame.encode_length_prefixed().expect("encode");
     let decoded = Frame::decode_length_prefixed(&bytes).expect("decode");
@@ -73,17 +68,16 @@ fn round_trip_reply(reply: OwnerOrchestrateReply) -> OwnerOrchestrateReply {
 
 #[test]
 fn owner_orchestrate_requests_round_trip() {
-    let create = OwnerOrchestrateRequest::CreateRoleOrder(CreateRoleOrder {
+    let create = OwnerOrchestrateRequest::Create(CreateRoleOrder {
         role: role(),
         harness: HarnessKind::Codex,
     });
     assert_eq!(round_trip_request(create.clone()), create);
 
-    let retire = OwnerOrchestrateRequest::RetireRoleOrder(RetireRoleOrder { role: role() });
+    let retire = OwnerOrchestrateRequest::Retire(RetireRoleOrder { role: role() });
     assert_eq!(round_trip_request(retire.clone()), retire);
 
-    let refresh =
-        OwnerOrchestrateRequest::RefreshRepositoryIndexOrder(RefreshRepositoryIndexOrder {});
+    let refresh = OwnerOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
     assert_eq!(round_trip_request(refresh.clone()), refresh);
 }
 
@@ -113,7 +107,7 @@ fn owner_orchestrate_replies_round_trip() {
 
     let unimplemented = OwnerOrchestrateReply::OwnerOrchestrateRequestUnimplemented(
         OwnerOrchestrateRequestUnimplemented {
-            operation: OwnerOrchestrateOperationKind::CreateRoleOrder,
+            operation: OwnerOperationKind::Create,
             reason: OwnerOrchestrateUnimplementedReason::NotBuiltYet,
         },
     );
@@ -121,51 +115,42 @@ fn owner_orchestrate_replies_round_trip() {
 }
 
 #[test]
-fn owner_orchestrate_requests_declare_expected_signal_root_verbs() {
-    let cases = [
-        (
-            OwnerOrchestrateRequest::CreateRoleOrder(CreateRoleOrder {
-                role: role(),
-                harness: HarnessKind::Codex,
-            }),
-            SignalVerb::Mutate,
-        ),
-        (
-            OwnerOrchestrateRequest::RetireRoleOrder(RetireRoleOrder { role: role() }),
-            SignalVerb::Retract,
-        ),
-        (
-            OwnerOrchestrateRequest::RefreshRepositoryIndexOrder(RefreshRepositoryIndexOrder {}),
-            SignalVerb::Mutate,
-        ),
-    ];
+fn owner_orchestrate_operations_encode_as_contract_local_nota_heads() {
+    use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode};
 
-    for (request, verb) in cases {
-        assert_eq!(request.signal_verb(), verb);
-    }
+    let operation = OwnerOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
+    let mut encoder = Encoder::new();
+    operation
+        .into_request()
+        .encode(&mut encoder)
+        .expect("encode");
+    let text = encoder.into_string();
+
+    assert_eq!(text, "(Refresh ())");
+    assert!(!text.contains("Mutate"));
+    assert!(!text.contains("Retract"));
+
+    let mut decoder = Decoder::new(&text);
+    let decoded =
+        owner_signal_persona_orchestrate::OwnerOrchestrateChannelRequest::decode(&mut decoder)
+            .expect("decode");
+    assert_eq!(
+        decoded.payloads().head().operation_kind(),
+        OwnerOperationKind::Refresh
+    );
 }
 
 #[test]
 fn owner_orchestrate_request_exposes_contract_owned_operation_kind() {
-    let create = OwnerOrchestrateRequest::CreateRoleOrder(CreateRoleOrder {
+    let create = OwnerOrchestrateRequest::Create(CreateRoleOrder {
         role: role(),
         harness: HarnessKind::Codex,
     });
-    assert_eq!(
-        create.operation_kind(),
-        OwnerOrchestrateOperationKind::CreateRoleOrder
-    );
+    assert_eq!(create.operation_kind(), OwnerOperationKind::Create);
 
-    let retire = OwnerOrchestrateRequest::RetireRoleOrder(RetireRoleOrder { role: role() });
-    assert_eq!(
-        retire.operation_kind(),
-        OwnerOrchestrateOperationKind::RetireRoleOrder
-    );
+    let retire = OwnerOrchestrateRequest::Retire(RetireRoleOrder { role: role() });
+    assert_eq!(retire.operation_kind(), OwnerOperationKind::Retire);
 
-    let refresh =
-        OwnerOrchestrateRequest::RefreshRepositoryIndexOrder(RefreshRepositoryIndexOrder {});
-    assert_eq!(
-        refresh.operation_kind(),
-        OwnerOrchestrateOperationKind::RefreshRepositoryIndexOrder
-    );
+    let refresh = OwnerOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
+    assert_eq!(refresh.operation_kind(), OwnerOperationKind::Refresh);
 }

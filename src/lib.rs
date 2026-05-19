@@ -7,7 +7,7 @@
 
 use nota_codec::{NotaEnum, NotaRecord};
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-use signal_core::signal_channel;
+use signal_frame::signal_channel;
 pub use signal_persona_orchestrate::{HarnessKind, RoleIdentifier, RoleName, WirePath};
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
@@ -62,10 +62,10 @@ pub struct RepositoryIndexRefreshed {
 #[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
 )]
-pub enum OwnerOrchestrateOperationKind {
-    CreateRoleOrder,
-    RetireRoleOrder,
-    RefreshRepositoryIndexOrder,
+pub enum OwnerOperationKind {
+    Create,
+    Retire,
+    Refresh,
 }
 
 #[derive(
@@ -78,60 +78,57 @@ pub enum OwnerOrchestrateUnimplementedReason {
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
 pub struct OwnerOrchestrateRequestUnimplemented {
-    pub operation: OwnerOrchestrateOperationKind,
+    pub operation: OwnerOperationKind,
     pub reason: OwnerOrchestrateUnimplementedReason,
 }
 
 signal_channel! {
     channel OwnerOrchestrate {
-        request OwnerOrchestrateRequest {
-            Mutate CreateRoleOrder(CreateRoleOrder),
-            Retract RetireRoleOrder(RetireRoleOrder),
-            Mutate RefreshRepositoryIndexOrder(RefreshRepositoryIndexOrder),
-        }
-        reply OwnerOrchestrateReply {
-            RoleCreated(RoleCreated),
-            RoleRetired(RoleRetired),
-            RoleCreationRejected(RoleCreationRejected),
-            RepositoryIndexRefreshed(RepositoryIndexRefreshed),
-            OwnerOrchestrateRequestUnimplemented(OwnerOrchestrateRequestUnimplemented),
-        }
+        operation Create(CreateRoleOrder),
+        operation Retire(RetireRoleOrder),
+        operation Refresh(RefreshRepositoryIndexOrder),
+    }
+    reply OwnerOrchestrateReply {
+        RoleCreated(RoleCreated),
+        RoleRetired(RoleRetired),
+        RoleCreationRejected(RoleCreationRejected),
+        RepositoryIndexRefreshed(RepositoryIndexRefreshed),
+        OwnerOrchestrateRequestUnimplemented(OwnerOrchestrateRequestUnimplemented),
     }
 }
 
+pub type OwnerOrchestrateRequest = OwnerOrchestrateOperation;
 pub type Frame = OwnerOrchestrateFrame;
 pub type FrameBody = OwnerOrchestrateFrameBody;
 pub type ChannelRequest = OwnerOrchestrateChannelRequest;
 pub type ChannelReply = OwnerOrchestrateChannelReply;
 pub type RequestBuilder = OwnerOrchestrateRequestBuilder;
 
-impl OwnerOrchestrateRequest {
-    pub fn operation_kind(&self) -> OwnerOrchestrateOperationKind {
+impl OwnerOrchestrateOperation {
+    pub fn operation_kind(&self) -> OwnerOperationKind {
         match self {
-            Self::CreateRoleOrder(_) => OwnerOrchestrateOperationKind::CreateRoleOrder,
-            Self::RetireRoleOrder(_) => OwnerOrchestrateOperationKind::RetireRoleOrder,
-            Self::RefreshRepositoryIndexOrder(_) => {
-                OwnerOrchestrateOperationKind::RefreshRepositoryIndexOrder
-            }
+            Self::Create(_) => OwnerOperationKind::Create,
+            Self::Retire(_) => OwnerOperationKind::Retire,
+            Self::Refresh(_) => OwnerOperationKind::Refresh,
         }
     }
 }
 
 impl From<CreateRoleOrder> for OwnerOrchestrateRequest {
     fn from(payload: CreateRoleOrder) -> Self {
-        Self::CreateRoleOrder(payload)
+        Self::Create(payload)
     }
 }
 
 impl From<RetireRoleOrder> for OwnerOrchestrateRequest {
     fn from(payload: RetireRoleOrder) -> Self {
-        Self::RetireRoleOrder(payload)
+        Self::Retire(payload)
     }
 }
 
 impl From<RefreshRepositoryIndexOrder> for OwnerOrchestrateRequest {
     fn from(payload: RefreshRepositoryIndexOrder) -> Self {
-        Self::RefreshRepositoryIndexOrder(payload)
+        Self::Refresh(payload)
     }
 }
 

@@ -14,41 +14,28 @@ This split is code-enforced now and filesystem-permission-enforced
 later: callers can compile against the ordinary contract without being
 able to express role creation or repository-index refresh orders.
 
-## MUST IMPLEMENT — signal architecture migration
+## Migration history — contract-local verbs (2026-05-19)
 
-This contract is pending the signal architecture migration named in
-`primary/reports/designer/238-signal-architecture-redirection-contract-local-verbs.md`
-and implemented by
-`primary/reports/designer/239-signal-architecture-migration-plan.md`.
-The current owner requests still sit under public `SignalVerb` roots;
-that shape is temporary.
+This contract migrated from `signal-core` public `SignalVerb` wrappers
+to `signal-frame` contract-local operation roots.
 
-Required refactor after `signal-frame` and the updated
-`signal_channel!` macro are available:
+The public owner request surface is now:
 
-- replace the `signal-core` dependency with `signal-frame`;
-- drop the `Mutate` / `Retract` prefixes from owner request variants;
-- expose contract-local operation roots in verb form;
-- keep owner-only authority on the owner socket;
-- move verb-to-Sema lowering into the `persona-orchestrate` runtime
-  executor.
+- `Create(CreateRoleOrder)`
+- `Retire(RetireRoleOrder)`
+- `Refresh(RefreshRepositoryIndexOrder)`
 
-The expected owner operation roots are `Create`, `Retire`, and
-`Refresh`. The payloads remain nouns: role creation order, role
-retirement order, and repository-index refresh order. The lower Sema
-effects remain runtime work, not contract declarations.
-
-**Note to remover:** when the refactor lands, remove this section and
-add a `## Migration history — contract-local verbs (2026-05-XX)`
-paragraph noting the shape change.
+There is no public `Mutate` / `Retract` tag in this contract. The
+owner socket remains the authority boundary; `persona-orchestrate`
+owns the lower Sema translation.
 
 ## 1 · Contract Surface
 
-| Request | Signal verb | Meaning |
+| Operation | Lower Sema effect | Meaning |
 |---|---|---|
-| `CreateRoleOrder` | `Mutate` | Create a dynamic role lane with its harness metadata. |
-| `RetireRoleOrder` | `Retract` | Retire a dynamic role from the active registry. |
-| `RefreshRepositoryIndexOrder` | `Mutate` | Re-scan local checkouts and refresh the orchestration repository index. |
+| `Create` | `Mutate` | Create a dynamic role lane with its harness metadata. |
+| `Retire` | `Retract` | Retire a dynamic role from the active registry. |
+| `Refresh` | `Mutate` | Re-scan local checkouts and refresh the orchestration repository index. |
 
 | Reply | Meaning |
 |---|---|
@@ -76,7 +63,7 @@ scope records.
 | Constraint | Witness |
 |---|---|
 | Topology-changing orders live only in the owner contract. | Ordinary `signal-persona-orchestrate::OrchestrateRequest` has no `CreateRoleOrder`, `RetireRoleOrder`, or `RefreshRepositoryIndexOrder` variants; this crate round-trips all owner variants. |
-| Every owner request declares a Signal root verb. | `OwnerOrchestrateRequest::signal_verb()` witnesses `Mutate`, `Retract`, and `Mutate`. |
+| Every owner request has a contract-local operation root. | `OwnerOrchestrateRequest::operation_kind()` witnesses `Create`, `Retire`, and `Refresh`. |
 | Contract code contains no runtime. | Source contains no Kameo, Tokio, sema-engine, redb, filesystem mutation, GitHub, or ghq implementation. |
 | Harness assignment is typed, not hidden in a role string. | `CreateRoleOrder` carries `HarnessKind` beside `RoleIdentifier`. |
 
@@ -94,7 +81,7 @@ scope records.
 
 ```text
 src/lib.rs            owner request/reply records and signal_channel! invocation
-tests/round_trip.rs   frame round trips and verb witnesses
+tests/round_trip.rs   frame round trips and contract-local operation witnesses
 ```
 
 ## See Also
