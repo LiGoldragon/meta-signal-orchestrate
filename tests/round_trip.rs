@@ -2,8 +2,8 @@ use owner_signal_persona_orchestrate::{
     CreateRoleOrder, Frame, FrameBody, HarnessKind, OwnerOrchestrateOperationKind,
     OwnerOrchestrateReply, OwnerOrchestrateRequest, OwnerOrchestrateRequestUnimplemented,
     OwnerOrchestrateUnimplementedReason, RefreshRepositoryIndexOrder, RepositoryIndexRefreshed,
-    RetireRoleOrder, RoleCreated, RoleCreationRejected, RoleCreationRejectionReason, RoleIdentifier,
-    RoleRetired, WirePath,
+    RetireRoleOrder, RoleCreated, RoleCreationRejected, RoleCreationRejectionReason,
+    RoleIdentifier, RoleRetired, WirePath,
 };
 use signal_core::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -15,10 +15,8 @@ fn role() -> RoleIdentifier {
 }
 
 fn repository_path() -> WirePath {
-    WirePath::from_absolute_path(
-        "/git/github.com/LiGoldragon/persona-role-primary-hrhz-reports",
-    )
-    .expect("repository path")
+    WirePath::from_absolute_path("/git/github.com/LiGoldragon/persona-role-primary-hrhz-reports")
+        .expect("repository path")
 }
 
 fn lane_path() -> WirePath {
@@ -108,10 +106,9 @@ fn owner_orchestrate_replies_round_trip() {
     });
     assert_eq!(round_trip_reply(rejected.clone()), rejected);
 
-    let refreshed =
-        OwnerOrchestrateReply::RepositoryIndexRefreshed(RepositoryIndexRefreshed {
-            repositories: 7,
-        });
+    let refreshed = OwnerOrchestrateReply::RepositoryIndexRefreshed(RepositoryIndexRefreshed {
+        repositories: 7,
+    });
     assert_eq!(round_trip_reply(refreshed.clone()), refreshed);
 
     let unimplemented = OwnerOrchestrateReply::OwnerOrchestrateRequestUnimplemented(

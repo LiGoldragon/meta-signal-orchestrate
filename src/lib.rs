@@ -52,7 +52,9 @@ pub enum RoleCreationRejectionReason {
     ReportLaneAlreadyExists,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, Copy, PartialEq, Eq,
+)]
 pub struct RepositoryIndexRefreshed {
     pub repositories: u32,
 }
