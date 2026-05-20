@@ -27,11 +27,14 @@ The public owner request surface is now:
 
 There is no public `Mutate` / `Retract` tag in this contract. The
 owner socket remains the authority boundary; `persona-orchestrate`
-owns the lower Sema translation.
+owns the typed Component Commands (Layer 2) that lower contract
+operations to executable form, and projects them to payloadless Sema
+class labels (Layer 3) for observation. See
+`~/primary/skills/component-triad.md` §"Verbs come in three layers".
 
-## 1 · Contract Surface
+## 1 · Contract Surface (Layer 1)
 
-| Operation | Lower Sema effect | Meaning |
+| Operation | Projected Sema class | Meaning |
 |---|---|---|
 | `Create` | `Mutate` | Create a dynamic role lane with its harness metadata. |
 | `Retire` | `Retract` | Retire a dynamic role from the active registry. |
@@ -88,4 +91,7 @@ tests/round_trip.rs   frame round trips and contract-local operation witnesses
 
 - `../signal-persona-orchestrate/ARCHITECTURE.md`
 - `../persona-orchestrate/ARCHITECTURE.md`
+- `../signal-frame/ARCHITECTURE.md`
+- `../signal-sema/ARCHITECTURE.md`
 - `~/primary/skills/contract-repo.md`
+- `~/primary/skills/component-triad.md` §"Verbs come in three layers".
