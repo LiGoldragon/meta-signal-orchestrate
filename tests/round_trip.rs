@@ -1,9 +1,11 @@
 use owner_signal_persona_orchestrate::{
-    CreateRoleOrder, Frame, FrameBody, HarnessKind, OwnerOperationKind, OwnerOrchestrateReply,
+    ChannelRequest, CreateRoleOrder, Frame, FrameBody, HarnessKind, LaneAuthority,
+    LaneAuthorityChange, LaneAuthoritySet, LaneIdentifier, LaneRegistered, LaneRegistration,
+    LaneRegistrationRequest, LaneRetired, OwnerOperationKind, OwnerOrchestrateReply,
     OwnerOrchestrateRequest, OwnerOrchestrateRequestUnimplemented,
     OwnerOrchestrateUnimplementedReason, RefreshRepositoryIndexOrder, RepositoryIndexRefreshed,
-    RetireRoleOrder, RoleCreated, RoleCreationRejected, RoleCreationRejectionReason,
-    RoleIdentifier, RoleRetired, WirePath,
+    RetireRoleOrder, Retirement, Role, RoleCreated, RoleCreationRejected,
+    RoleCreationRejectionReason, RoleIdentifier, RoleRetired, RoleToken, WirePath,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -21,6 +23,26 @@ fn repository_path() -> WirePath {
 
 fn lane_path() -> WirePath {
     WirePath::from_absolute_path("/home/li/primary/reports/primary-hrhz").expect("lane path")
+}
+
+fn lane() -> LaneIdentifier {
+    LaneIdentifier::from_wire_token("persona-signal-designer").expect("lane")
+}
+
+fn role_vector() -> Role {
+    Role::try_new(vec![
+        RoleToken::from_text("PersonaSignal").expect("role token"),
+        RoleToken::from_text("Designer").expect("role token"),
+    ])
+    .expect("role vector")
+}
+
+fn lane_registration() -> LaneRegistration {
+    LaneRegistration {
+        lane: lane(),
+        role: role_vector(),
+        authority: LaneAuthority::Structural,
+    }
 }
 
 fn exchange() -> ExchangeIdentifier {
@@ -50,14 +72,14 @@ fn round_trip_request(request: OwnerOrchestrateRequest) -> OwnerOrchestrateReque
 fn round_trip_reply(reply: OwnerOrchestrateReply) -> OwnerOrchestrateReply {
     let frame = Frame::new(FrameBody::Reply {
         exchange: exchange(),
-        reply: Reply::completed(NonEmpty::single(SubReply::Ok { payload: reply })),
+        reply: Reply::committed(NonEmpty::single(SubReply::Ok(reply))),
     });
     let bytes = frame.encode_length_prefixed().expect("encode");
     let decoded = Frame::decode_length_prefixed(&bytes).expect("decode");
     match decoded.into_body() {
         FrameBody::Reply { reply, .. } => match reply {
             Reply::Accepted { per_operation, .. } => match per_operation.into_head() {
-                SubReply::Ok { payload, .. } => payload,
+                SubReply::Ok(payload) => payload,
                 other => panic!("expected accepted reply payload, got {other:?}"),
             },
             other => panic!("expected accepted reply, got {other:?}"),
@@ -74,11 +96,27 @@ fn owner_orchestrate_requests_round_trip() {
     });
     assert_eq!(round_trip_request(create.clone()), create);
 
-    let retire = OwnerOrchestrateRequest::Retire(RetireRoleOrder { role: role() });
+    let retire =
+        OwnerOrchestrateRequest::Retire(Retirement::Role(RetireRoleOrder { role: role() }));
     assert_eq!(round_trip_request(retire.clone()), retire);
 
     let refresh = OwnerOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
     assert_eq!(round_trip_request(refresh.clone()), refresh);
+
+    let register = OwnerOrchestrateRequest::Register(LaneRegistrationRequest {
+        role: role_vector(),
+        authority: LaneAuthority::Structural,
+    });
+    assert_eq!(round_trip_request(register.clone()), register);
+
+    let retire_lane = OwnerOrchestrateRequest::Retire(Retirement::Lane(lane()));
+    assert_eq!(round_trip_request(retire_lane.clone()), retire_lane);
+
+    let set_authority = OwnerOrchestrateRequest::SetAuthority(LaneAuthorityChange {
+        lane: lane(),
+        authority: LaneAuthority::Support,
+    });
+    assert_eq!(round_trip_request(set_authority.clone()), set_authority);
 }
 
 #[test]
@@ -104,6 +142,20 @@ fn owner_orchestrate_replies_round_trip() {
         repositories: 7,
     });
     assert_eq!(round_trip_reply(refreshed.clone()), refreshed);
+
+    let registered = OwnerOrchestrateReply::LaneRegistered(LaneRegistered {
+        registration: lane_registration(),
+    });
+    assert_eq!(round_trip_reply(registered.clone()), registered);
+
+    let lane_retired = OwnerOrchestrateReply::LaneRetired(LaneRetired { lane: lane() });
+    assert_eq!(round_trip_reply(lane_retired.clone()), lane_retired);
+
+    let authority_set = OwnerOrchestrateReply::LaneAuthoritySet(LaneAuthoritySet {
+        lane: lane(),
+        authority: LaneAuthority::Support,
+    });
+    assert_eq!(round_trip_reply(authority_set.clone()), authority_set);
 
     let unimplemented = OwnerOrchestrateReply::OwnerOrchestrateRequestUnimplemented(
         OwnerOrchestrateRequestUnimplemented {
@@ -131,9 +183,7 @@ fn owner_orchestrate_operations_encode_as_contract_local_nota_heads() {
     assert!(!text.contains("Retract"));
 
     let mut decoder = Decoder::new(&text);
-    let decoded =
-        owner_signal_persona_orchestrate::OwnerOrchestrateChannelRequest::decode(&mut decoder)
-            .expect("decode");
+    let decoded = ChannelRequest::decode(&mut decoder).expect("decode");
     assert_eq!(
         decoded.payloads().head().operation_kind(),
         OwnerOperationKind::Refresh
@@ -148,9 +198,25 @@ fn owner_orchestrate_request_exposes_contract_owned_operation_kind() {
     });
     assert_eq!(create.operation_kind(), OwnerOperationKind::Create);
 
-    let retire = OwnerOrchestrateRequest::Retire(RetireRoleOrder { role: role() });
+    let retire =
+        OwnerOrchestrateRequest::Retire(Retirement::Role(RetireRoleOrder { role: role() }));
     assert_eq!(retire.operation_kind(), OwnerOperationKind::Retire);
 
     let refresh = OwnerOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
     assert_eq!(refresh.operation_kind(), OwnerOperationKind::Refresh);
+
+    let register = OwnerOrchestrateRequest::Register(LaneRegistrationRequest {
+        role: role_vector(),
+        authority: LaneAuthority::Structural,
+    });
+    assert_eq!(register.operation_kind(), OwnerOperationKind::Register);
+
+    let set_authority = OwnerOrchestrateRequest::SetAuthority(LaneAuthorityChange {
+        lane: lane(),
+        authority: LaneAuthority::Support,
+    });
+    assert_eq!(
+        set_authority.operation_kind(),
+        OwnerOperationKind::SetAuthority
+    );
 }

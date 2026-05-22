@@ -5,10 +5,13 @@
 //! `signal-persona-orchestrate`. This crate carries owner-only
 //! orders that mutate the orchestration substrate itself.
 
-use nota_codec::{NotaEnum, NotaRecord};
+use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode, NotaEnum, NotaRecord};
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
-pub use signal_persona_orchestrate::{HarnessKind, RoleIdentifier, RoleName, WirePath};
+pub use signal_persona_orchestrate::{
+    HarnessKind, LaneAuthority, LaneIdentifier, LaneRegistration, Role, RoleIdentifier, RoleName,
+    RoleToken, WirePath,
+};
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
 pub struct CreateRoleOrder {
@@ -21,8 +24,67 @@ pub struct RetireRoleOrder {
     pub role: RoleIdentifier,
 }
 
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+pub enum Retirement {
+    Role(RetireRoleOrder),
+    Lane(LaneIdentifier),
+}
+
+impl NotaEncode for Retirement {
+    fn encode(&self, encoder: &mut Encoder) -> nota_codec::Result<()> {
+        match self {
+            Self::Role(order) => {
+                encoder.start_record("Role")?;
+                order.encode(encoder)?;
+                encoder.end_record()
+            }
+            Self::Lane(lane) => {
+                encoder.start_record("Lane")?;
+                lane.encode(encoder)?;
+                encoder.end_record()
+            }
+        }
+    }
+}
+
+impl NotaDecode for Retirement {
+    fn decode(decoder: &mut Decoder<'_>) -> nota_codec::Result<Self> {
+        let head = decoder.peek_record_head()?;
+        match head.as_str() {
+            "Role" => {
+                decoder.expect_record_head("Role")?;
+                let order = RetireRoleOrder::decode(decoder)?;
+                decoder.expect_record_end()?;
+                Ok(Self::Role(order))
+            }
+            "Lane" => {
+                decoder.expect_record_head("Lane")?;
+                let lane = LaneIdentifier::decode(decoder)?;
+                decoder.expect_record_end()?;
+                Ok(Self::Lane(lane))
+            }
+            other => Err(nota_codec::Error::UnknownVariant {
+                enum_name: "Retirement",
+                got: other.to_string(),
+            }),
+        }
+    }
+}
+
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
 pub struct RefreshRepositoryIndexOrder {}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+pub struct LaneRegistrationRequest {
+    pub role: Role,
+    pub authority: LaneAuthority,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+pub struct LaneAuthorityChange {
+    pub lane: LaneIdentifier,
+    pub authority: LaneAuthority,
+}
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
 pub struct RoleCreated {
@@ -59,13 +121,20 @@ pub struct RepositoryIndexRefreshed {
     pub repositories: u32,
 }
 
-#[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
-)]
-pub enum OwnerOperationKind {
-    Create,
-    Retire,
-    Refresh,
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+pub struct LaneRegistered {
+    pub registration: LaneRegistration,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+pub struct LaneRetired {
+    pub lane: LaneIdentifier,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+pub struct LaneAuthoritySet {
+    pub lane: LaneIdentifier,
+    pub authority: LaneAuthority,
 }
 
 #[derive(
@@ -85,32 +154,31 @@ pub struct OwnerOrchestrateRequestUnimplemented {
 signal_channel! {
     channel OwnerOrchestrate {
         operation Create(CreateRoleOrder),
-        operation Retire(RetireRoleOrder),
+        operation Retire(Retirement),
         operation Refresh(RefreshRepositoryIndexOrder),
+        operation Register(LaneRegistrationRequest),
+        operation SetAuthority(LaneAuthorityChange),
     }
     reply OwnerOrchestrateReply {
         RoleCreated(RoleCreated),
         RoleRetired(RoleRetired),
         RoleCreationRejected(RoleCreationRejected),
         RepositoryIndexRefreshed(RepositoryIndexRefreshed),
+        LaneRegistered(LaneRegistered),
+        LaneRetired(LaneRetired),
+        LaneAuthoritySet(LaneAuthoritySet),
         OwnerOrchestrateRequestUnimplemented(OwnerOrchestrateRequestUnimplemented),
     }
 }
 
-pub type OwnerOrchestrateRequest = OwnerOrchestrateOperation;
-pub type Frame = OwnerOrchestrateFrame;
-pub type FrameBody = OwnerOrchestrateFrameBody;
-pub type ChannelRequest = OwnerOrchestrateChannelRequest;
-pub type ChannelReply = OwnerOrchestrateChannelReply;
-pub type RequestBuilder = OwnerOrchestrateRequestBuilder;
+pub type OwnerOrchestrateRequest = Operation;
+pub type OwnerOperationKind = OperationKind;
+pub type ChannelRequest = signal_frame::Request<Operation>;
+pub type ChannelReply = signal_frame::Reply<OwnerOrchestrateReply>;
 
-impl OwnerOrchestrateOperation {
+impl Operation {
     pub fn operation_kind(&self) -> OwnerOperationKind {
-        match self {
-            Self::Create(_) => OwnerOperationKind::Create,
-            Self::Retire(_) => OwnerOperationKind::Retire,
-            Self::Refresh(_) => OwnerOperationKind::Refresh,
-        }
+        self.kind()
     }
 }
 
@@ -122,7 +190,13 @@ impl From<CreateRoleOrder> for OwnerOrchestrateRequest {
 
 impl From<RetireRoleOrder> for OwnerOrchestrateRequest {
     fn from(payload: RetireRoleOrder) -> Self {
-        Self::Retire(payload)
+        Self::Retire(Retirement::Role(payload))
+    }
+}
+
+impl From<LaneIdentifier> for OwnerOrchestrateRequest {
+    fn from(payload: LaneIdentifier) -> Self {
+        Self::Retire(Retirement::Lane(payload))
     }
 }
 
@@ -132,32 +206,14 @@ impl From<RefreshRepositoryIndexOrder> for OwnerOrchestrateRequest {
     }
 }
 
-impl From<RoleCreated> for OwnerOrchestrateReply {
-    fn from(payload: RoleCreated) -> Self {
-        Self::RoleCreated(payload)
+impl From<LaneRegistrationRequest> for OwnerOrchestrateRequest {
+    fn from(payload: LaneRegistrationRequest) -> Self {
+        Self::Register(payload)
     }
 }
 
-impl From<RoleRetired> for OwnerOrchestrateReply {
-    fn from(payload: RoleRetired) -> Self {
-        Self::RoleRetired(payload)
-    }
-}
-
-impl From<RoleCreationRejected> for OwnerOrchestrateReply {
-    fn from(payload: RoleCreationRejected) -> Self {
-        Self::RoleCreationRejected(payload)
-    }
-}
-
-impl From<RepositoryIndexRefreshed> for OwnerOrchestrateReply {
-    fn from(payload: RepositoryIndexRefreshed) -> Self {
-        Self::RepositoryIndexRefreshed(payload)
-    }
-}
-
-impl From<OwnerOrchestrateRequestUnimplemented> for OwnerOrchestrateReply {
-    fn from(payload: OwnerOrchestrateRequestUnimplemented) -> Self {
-        Self::OwnerOrchestrateRequestUnimplemented(payload)
+impl From<LaneAuthorityChange> for OwnerOrchestrateRequest {
+    fn from(payload: LaneAuthorityChange) -> Self {
+        Self::SetAuthority(payload)
     }
 }
