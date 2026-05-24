@@ -29,8 +29,14 @@
         };
         craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
         examplesFilter = path: _type: builtins.match ".*/examples(/.*)?$" path != null;
+        schemaFilter = path: _type:
+          let
+            pathString = toString path;
+            schemaRoot = "${toString ./.}/schema";
+          in
+          pathString == schemaRoot || pkgs.lib.hasPrefix "${schemaRoot}/" pathString;
         sourceFilter = path: type:
-          (craneLib.filterCargoSources path type) || (examplesFilter path type);
+          (craneLib.filterCargoSources path type) || (examplesFilter path type) || (schemaFilter path type);
         src = pkgs.lib.cleanSourceWith {
           src = ./.;
           filter = sourceFilter;

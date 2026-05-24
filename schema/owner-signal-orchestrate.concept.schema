@@ -3,33 +3,67 @@
 []
 
 [
-  (Create [Role])
-  (Retire [Role])
-  (Refresh [RepositoryIndex])
-  (Register [Lane])
-  (SetAuthority [Lane])
+  (Create [CreateRoleOrder])
+  (Retire [Retirement])
+  (Refresh [RefreshRepositoryIndexOrder])
+  (Register [LaneRegistrationRequest])
+  (SetAuthority [LaneAuthorityChange])
 ]
 
 []
 
 {
-  Create [(Role Role)]
-  Retire [(Role Role)]
-  Refresh [(RepositoryIndex RepositoryIndex)]
-  Register [(Lane Lane)]
-  SetAuthority [(Lane Lane)]
-  Role (Name)
-  Activity (Text)
-  RepositoryIndex (Text)
-  Lane (Name)
-  Text (String)
-  Identifier (u64)
-  Name (String)
-  Path (String)
-  Status [Concept Active Retired]
+  Create [(CreateRoleOrder CreateRoleOrder)]
+  Retire [(Retirement Retirement)]
+  Refresh [(RefreshRepositoryIndexOrder RefreshRepositoryIndexOrder)]
+  Register [(LaneRegistrationRequest LaneRegistrationRequest)]
+  SetAuthority [(LaneAuthorityChange LaneAuthorityChange)]
+
+  RoleIdentifier (String)
+  RoleName (RoleIdentifier)
+  RoleToken (String)
+  Role ((Vec RoleToken))
+  HarnessKind [Codex Claude]
+  LaneAuthority [Structural Support]
+  LaneIdentifier (String)
+  LaneRegistration (LaneIdentifier Role LaneAuthority)
+  WirePath (String)
+  ScopeReason (String)
+
+  CreateRoleOrder (RoleIdentifier HarnessKind)
+  RetireRoleOrder (RoleIdentifier)
+  Retirement [(Role RetireRoleOrder) (Lane LaneIdentifier)]
+  RefreshRepositoryIndexOrder []
+  LaneRegistrationRequest (Role LaneAuthority)
+  LaneAuthorityChange (LaneIdentifier LaneAuthority)
+
+  RoleCreated (RoleIdentifier HarnessKind WirePath WirePath)
+  RoleRetired (RoleIdentifier)
+  RoleCreationRejected (RoleIdentifier RoleCreationRejectionReason)
+  RoleCreationRejectionReason [RoleAlreadyExists ReportRepositoryAlreadyExists ReportLaneAlreadyExists]
+  RepositoryIndexRefreshed (u32)
+  LaneRegistered (LaneRegistration)
+  LaneRetired (LaneIdentifier)
+  LaneAuthoritySet (LaneIdentifier LaneAuthority)
+  DownstreamComponent [Router Harness Terminal Message Mind System Introspect]
+  ApplicationFailureReason [Unreachable Rejected Unimplemented TimedOut Unknown]
+  ApplicationSuccess (DownstreamComponent ScopeReason)
+  ApplicationFailure (DownstreamComponent ApplicationFailureReason ScopeReason)
+  PartialApplied ((Vec ApplicationSuccess) (Vec ApplicationFailure))
+  OwnerOperationKind [Create Retire Refresh Register SetAuthority]
+  OwnerOrchestrateUnimplementedReason [NotBuiltYet DependencyNotReady]
+  OwnerOrchestrateRequestUnimplemented (OwnerOperationKind OwnerOrchestrateUnimplementedReason)
 }
 
 [
-  (Version 0 1)
-  (Status Concept)
+  (Reply
+    RoleCreated
+    RoleRetired
+    RoleCreationRejected
+    RepositoryIndexRefreshed
+    LaneRegistered
+    LaneRetired
+    LaneAuthoritySet
+    PartialApplied
+    OwnerOrchestrateRequestUnimplemented)
 ]
