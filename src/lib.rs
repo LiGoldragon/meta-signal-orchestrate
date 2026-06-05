@@ -1,8 +1,8 @@
-//! OwnerSignal contract for privileged `orchestrate`
+//! MetaSignal contract for privileged `orchestrate`
 //! administration.
 //!
 //! Ordinary claim/release/handoff/activity traffic lives in
-//! `signal-orchestrate`. This crate carries owner-only
+//! `signal-orchestrate`. This crate carries meta-signal
 //! orders that mutate the orchestration substrate itself.
 
 use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode, NotaEnum, NotaRecord};
@@ -141,26 +141,26 @@ pub struct LaneAuthoritySet {
 #[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
 )]
-pub enum OwnerOrchestrateUnimplementedReason {
+pub enum MetaOrchestrateUnimplementedReason {
     NotBuiltYet,
     DependencyNotReady,
 }
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
-pub struct OwnerOrchestrateRequestUnimplemented {
-    pub operation: OwnerOperationKind,
-    pub reason: OwnerOrchestrateUnimplementedReason,
+pub struct MetaOrchestrateRequestUnimplemented {
+    pub operation: MetaOperationKind,
+    pub reason: MetaOrchestrateUnimplementedReason,
 }
 
 signal_channel! {
-    channel OwnerOrchestrate {
+    channel MetaOrchestrate {
         operation Create(CreateRoleOrder),
         operation Retire(Retirement),
         operation Refresh(RefreshRepositoryIndexOrder),
         operation Register(LaneRegistrationRequest),
         operation SetAuthority(LaneAuthorityChange),
     }
-    reply OwnerOrchestrateReply {
+    reply MetaOrchestrateReply {
         RoleCreated(RoleCreated),
         RoleRetired(RoleRetired),
         RoleCreationRejected(RoleCreationRejected),
@@ -169,52 +169,52 @@ signal_channel! {
         LaneRetired(LaneRetired),
         LaneAuthoritySet(LaneAuthoritySet),
         PartialApplied(PartialApplied),
-        OwnerOrchestrateRequestUnimplemented(OwnerOrchestrateRequestUnimplemented),
+        MetaOrchestrateRequestUnimplemented(MetaOrchestrateRequestUnimplemented),
     }
 }
 
-pub type OwnerOrchestrateRequest = Operation;
-pub type OwnerOperationKind = OperationKind;
+pub type MetaOrchestrateRequest = Operation;
+pub type MetaOperationKind = OperationKind;
 pub type ChannelRequest = signal_frame::Request<Operation>;
-pub type ChannelReply = signal_frame::Reply<OwnerOrchestrateReply>;
+pub type ChannelReply = signal_frame::Reply<MetaOrchestrateReply>;
 
 impl Operation {
-    pub fn operation_kind(&self) -> OwnerOperationKind {
+    pub fn operation_kind(&self) -> MetaOperationKind {
         self.kind()
     }
 }
 
-impl From<CreateRoleOrder> for OwnerOrchestrateRequest {
+impl From<CreateRoleOrder> for MetaOrchestrateRequest {
     fn from(payload: CreateRoleOrder) -> Self {
         Self::Create(payload)
     }
 }
 
-impl From<RetireRoleOrder> for OwnerOrchestrateRequest {
+impl From<RetireRoleOrder> for MetaOrchestrateRequest {
     fn from(payload: RetireRoleOrder) -> Self {
         Self::Retire(Retirement::Role(payload))
     }
 }
 
-impl From<LaneIdentifier> for OwnerOrchestrateRequest {
+impl From<LaneIdentifier> for MetaOrchestrateRequest {
     fn from(payload: LaneIdentifier) -> Self {
         Self::Retire(Retirement::Lane(payload))
     }
 }
 
-impl From<RefreshRepositoryIndexOrder> for OwnerOrchestrateRequest {
+impl From<RefreshRepositoryIndexOrder> for MetaOrchestrateRequest {
     fn from(payload: RefreshRepositoryIndexOrder) -> Self {
         Self::Refresh(payload)
     }
 }
 
-impl From<LaneRegistrationRequest> for OwnerOrchestrateRequest {
+impl From<LaneRegistrationRequest> for MetaOrchestrateRequest {
     fn from(payload: LaneRegistrationRequest) -> Self {
         Self::Register(payload)
     }
 }
 
-impl From<LaneAuthorityChange> for OwnerOrchestrateRequest {
+impl From<LaneAuthorityChange> for MetaOrchestrateRequest {
     fn from(payload: LaneAuthorityChange) -> Self {
         Self::SetAuthority(payload)
     }

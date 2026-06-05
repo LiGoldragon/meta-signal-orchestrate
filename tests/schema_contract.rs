@@ -4,13 +4,13 @@ use std::path::PathBuf;
 fn schema_file() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("schema")
-        .join("owner-signal-orchestrate.concept.schema")
+        .join("meta-signal-orchestrate.concept.schema")
 }
 
 #[test]
-fn owner_signal_orchestrate_concept_schema_lowers_owner_routes() {
+fn meta_signal_orchestrate_concept_schema_lowers_owner_routes() {
     let loaded =
-        LoadedSchema::read_path(schema_file()).expect("owner-signal-orchestrate schema reads");
+        LoadedSchema::read_path(schema_file()).expect("meta-signal-orchestrate schema reads");
     let assembled = loaded.assembled();
 
     assert_eq!(assembled.routes().len(), 5);

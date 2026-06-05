@@ -1,6 +1,6 @@
-# INTENT — owner-signal-orchestrate
+# INTENT — meta-signal-orchestrate
 
-*The owner-only wire contract for privileged `orchestrate` role and repository
+*The meta-signal wire contract for privileged `orchestrate` role and repository
 administration. Defines the typed request/reply channel that the orchestration
 owner uses to create and retire dynamic role lanes and refresh the repository
 index.
@@ -8,15 +8,15 @@ Companion to `ARCHITECTURE.md` and `Cargo.toml`. Maintenance: `primary/skills/re
 
 ## Repo-scope only
 
-This file carries only the intent that is FOR this owner-only
-`owner-signal-orchestrate` contract. Workspace-shape intent stays in the primary
+This file carries only the intent that is FOR this meta-signal
+`meta-signal-orchestrate` contract. Workspace-shape intent stays in the primary
 workspace `primary/INTENT.md`. Component daemon intent stays in
 `orchestrate/INTENT.md`. Ordinary role claims, releases, handoffs, observations,
 and activity records stay in `signal-orchestrate/INTENT.md`.
 
 ## Why this repo exists
 
-`owner-signal-orchestrate` is the **owner-only authority contract** for mutating
+`meta-signal-orchestrate` is the **meta-signal authority contract** for mutating
 orchestration topology. The split is code-enforced now and
 filesystem-permission-enforced later: callers can compile against the ordinary
 `signal-orchestrate` contract without being able to express role creation or
@@ -24,7 +24,7 @@ repository-index refresh orders.
 
 ## The channel shape
 
-The owner channel carries:
+The meta channel carries:
 
 - **Requests:** `Create(CreateRoleOrder)` (create a dynamic role lane with its
   harness metadata), `Retire(RetireRoleOrder)` (retire a dynamic role from the
@@ -34,7 +34,7 @@ The owner channel carries:
   conflicting with existing state), `RepositoryIndexRefreshed`, `PartialApplied`
   (one or more downstream legs succeeded while a sibling failed; orchestrate
   records the divergence instead of rolling back), and
-  `OwnerOrchestrateRequestUnimplemented` (in the owner vocabulary, not yet
+  `MetaOrchestrateRequestUnimplemented` (in the meta vocabulary, not yet
   implemented).
 
 Shared role and path nouns are imported from `signal-orchestrate`
@@ -44,10 +44,10 @@ activity, or scope records.
 
 ## Constraints
 
-- Topology-changing orders live only in the owner contract — ordinary
+- Topology-changing orders live only in the meta-signal contract — ordinary
   `signal-orchestrate` has no `CreateRoleOrder`, `RetireRoleOrder`, or
   `RefreshRepositoryIndexOrder` variant.
-- Every owner request has a contract-local operation root in verb form. There is
+- Every meta request has a contract-local operation root in verb form. There is
   no public `Mutate` / `Retract` tag; the Sema class is a daemon-side projection.
 - Harness assignment is typed, not hidden in a role string — `CreateRoleOrder`
   carries `HarnessKind` beside `RoleIdentifier`.

@@ -1,10 +1,10 @@
-use owner_signal_orchestrate::{
+use meta_signal_orchestrate::{
     ApplicationFailure, ApplicationFailureReason, ApplicationSuccess, ChannelRequest,
     CreateRoleOrder, DownstreamComponent, Frame, FrameBody, HarnessKind, LaneAuthority,
     LaneAuthorityChange, LaneAuthoritySet, LaneIdentifier, LaneRegistered, LaneRegistration,
-    LaneRegistrationRequest, LaneRetired, OwnerOperationKind, OwnerOrchestrateReply,
-    OwnerOrchestrateRequest, OwnerOrchestrateRequestUnimplemented,
-    OwnerOrchestrateUnimplementedReason, PartialApplied, RefreshRepositoryIndexOrder,
+    LaneRegistrationRequest, LaneRetired, MetaOperationKind, MetaOrchestrateReply,
+    MetaOrchestrateRequest, MetaOrchestrateRequestUnimplemented,
+    MetaOrchestrateUnimplementedReason, PartialApplied, RefreshRepositoryIndexOrder,
     RepositoryIndexRefreshed, RetireRoleOrder, Retirement, Role, RoleCreated, RoleCreationRejected,
     RoleCreationRejectionReason, RoleIdentifier, RoleRetired, RoleToken, ScopeReason, WirePath,
 };
@@ -54,7 +54,7 @@ fn exchange() -> ExchangeIdentifier {
     )
 }
 
-fn round_trip_request(request: OwnerOrchestrateRequest) -> OwnerOrchestrateRequest {
+fn round_trip_request(request: MetaOrchestrateRequest) -> MetaOrchestrateRequest {
     let frame = Frame::new(FrameBody::Request {
         exchange: exchange(),
         request: request.into_request(),
@@ -70,7 +70,7 @@ fn round_trip_request(request: OwnerOrchestrateRequest) -> OwnerOrchestrateReque
     }
 }
 
-fn round_trip_reply(reply: OwnerOrchestrateReply) -> OwnerOrchestrateReply {
+fn round_trip_reply(reply: MetaOrchestrateReply) -> MetaOrchestrateReply {
     let frame = Frame::new(FrameBody::Reply {
         exchange: exchange(),
         reply: Reply::committed(NonEmpty::single(SubReply::Ok(reply))),
@@ -90,30 +90,29 @@ fn round_trip_reply(reply: OwnerOrchestrateReply) -> OwnerOrchestrateReply {
 }
 
 #[test]
-fn owner_orchestrate_requests_round_trip() {
-    let create = OwnerOrchestrateRequest::Create(CreateRoleOrder {
+fn meta_orchestrate_requests_round_trip() {
+    let create = MetaOrchestrateRequest::Create(CreateRoleOrder {
         role: role(),
         harness: HarnessKind::Codex,
     });
     assert_eq!(round_trip_request(create.clone()), create);
 
-    let retire =
-        OwnerOrchestrateRequest::Retire(Retirement::Role(RetireRoleOrder { role: role() }));
+    let retire = MetaOrchestrateRequest::Retire(Retirement::Role(RetireRoleOrder { role: role() }));
     assert_eq!(round_trip_request(retire.clone()), retire);
 
-    let refresh = OwnerOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
+    let refresh = MetaOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
     assert_eq!(round_trip_request(refresh.clone()), refresh);
 
-    let register = OwnerOrchestrateRequest::Register(LaneRegistrationRequest {
+    let register = MetaOrchestrateRequest::Register(LaneRegistrationRequest {
         role: role_vector(),
         authority: LaneAuthority::Structural,
     });
     assert_eq!(round_trip_request(register.clone()), register);
 
-    let retire_lane = OwnerOrchestrateRequest::Retire(Retirement::Lane(lane()));
+    let retire_lane = MetaOrchestrateRequest::Retire(Retirement::Lane(lane()));
     assert_eq!(round_trip_request(retire_lane.clone()), retire_lane);
 
-    let set_authority = OwnerOrchestrateRequest::SetAuthority(LaneAuthorityChange {
+    let set_authority = MetaOrchestrateRequest::SetAuthority(LaneAuthorityChange {
         lane: lane(),
         authority: LaneAuthority::Support,
     });
@@ -121,8 +120,8 @@ fn owner_orchestrate_requests_round_trip() {
 }
 
 #[test]
-fn owner_orchestrate_replies_round_trip() {
-    let created = OwnerOrchestrateReply::RoleCreated(RoleCreated {
+fn meta_orchestrate_replies_round_trip() {
+    let created = MetaOrchestrateReply::RoleCreated(RoleCreated {
         role: role(),
         harness: HarnessKind::Codex,
         report_repository_path: repository_path(),
@@ -130,35 +129,35 @@ fn owner_orchestrate_replies_round_trip() {
     });
     assert_eq!(round_trip_reply(created.clone()), created);
 
-    let retired = OwnerOrchestrateReply::RoleRetired(RoleRetired { role: role() });
+    let retired = MetaOrchestrateReply::RoleRetired(RoleRetired { role: role() });
     assert_eq!(round_trip_reply(retired.clone()), retired);
 
-    let rejected = OwnerOrchestrateReply::RoleCreationRejected(RoleCreationRejected {
+    let rejected = MetaOrchestrateReply::RoleCreationRejected(RoleCreationRejected {
         role: role(),
         reason: RoleCreationRejectionReason::RoleAlreadyExists,
     });
     assert_eq!(round_trip_reply(rejected.clone()), rejected);
 
-    let refreshed = OwnerOrchestrateReply::RepositoryIndexRefreshed(RepositoryIndexRefreshed {
+    let refreshed = MetaOrchestrateReply::RepositoryIndexRefreshed(RepositoryIndexRefreshed {
         repositories: 7,
     });
     assert_eq!(round_trip_reply(refreshed.clone()), refreshed);
 
-    let registered = OwnerOrchestrateReply::LaneRegistered(LaneRegistered {
+    let registered = MetaOrchestrateReply::LaneRegistered(LaneRegistered {
         registration: lane_registration(),
     });
     assert_eq!(round_trip_reply(registered.clone()), registered);
 
-    let lane_retired = OwnerOrchestrateReply::LaneRetired(LaneRetired { lane: lane() });
+    let lane_retired = MetaOrchestrateReply::LaneRetired(LaneRetired { lane: lane() });
     assert_eq!(round_trip_reply(lane_retired.clone()), lane_retired);
 
-    let authority_set = OwnerOrchestrateReply::LaneAuthoritySet(LaneAuthoritySet {
+    let authority_set = MetaOrchestrateReply::LaneAuthoritySet(LaneAuthoritySet {
         lane: lane(),
         authority: LaneAuthority::Support,
     });
     assert_eq!(round_trip_reply(authority_set.clone()), authority_set);
 
-    let partial = OwnerOrchestrateReply::PartialApplied(PartialApplied {
+    let partial = MetaOrchestrateReply::PartialApplied(PartialApplied {
         succeeded: vec![ApplicationSuccess {
             component: DownstreamComponent::Router,
             detail: ScopeReason::from_text("channel 42 installed").expect("success detail"),
@@ -171,20 +170,20 @@ fn owner_orchestrate_replies_round_trip() {
     });
     assert_eq!(round_trip_reply(partial.clone()), partial);
 
-    let unimplemented = OwnerOrchestrateReply::OwnerOrchestrateRequestUnimplemented(
-        OwnerOrchestrateRequestUnimplemented {
-            operation: OwnerOperationKind::Create,
-            reason: OwnerOrchestrateUnimplementedReason::NotBuiltYet,
+    let unimplemented = MetaOrchestrateReply::MetaOrchestrateRequestUnimplemented(
+        MetaOrchestrateRequestUnimplemented {
+            operation: MetaOperationKind::Create,
+            reason: MetaOrchestrateUnimplementedReason::NotBuiltYet,
         },
     );
     assert_eq!(round_trip_reply(unimplemented.clone()), unimplemented);
 }
 
 #[test]
-fn owner_orchestrate_operations_encode_as_contract_local_nota_heads() {
+fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
     use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode};
 
-    let operation = OwnerOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
+    let operation = MetaOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
     let mut encoder = Encoder::new();
     operation
         .into_request()
@@ -200,37 +199,36 @@ fn owner_orchestrate_operations_encode_as_contract_local_nota_heads() {
     let decoded = ChannelRequest::decode(&mut decoder).expect("decode");
     assert_eq!(
         decoded.payloads().head().operation_kind(),
-        OwnerOperationKind::Refresh
+        MetaOperationKind::Refresh
     );
 }
 
 #[test]
-fn owner_orchestrate_request_exposes_contract_owned_operation_kind() {
-    let create = OwnerOrchestrateRequest::Create(CreateRoleOrder {
+fn meta_orchestrate_request_exposes_contract_owned_operation_kind() {
+    let create = MetaOrchestrateRequest::Create(CreateRoleOrder {
         role: role(),
         harness: HarnessKind::Codex,
     });
-    assert_eq!(create.operation_kind(), OwnerOperationKind::Create);
+    assert_eq!(create.operation_kind(), MetaOperationKind::Create);
 
-    let retire =
-        OwnerOrchestrateRequest::Retire(Retirement::Role(RetireRoleOrder { role: role() }));
-    assert_eq!(retire.operation_kind(), OwnerOperationKind::Retire);
+    let retire = MetaOrchestrateRequest::Retire(Retirement::Role(RetireRoleOrder { role: role() }));
+    assert_eq!(retire.operation_kind(), MetaOperationKind::Retire);
 
-    let refresh = OwnerOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
-    assert_eq!(refresh.operation_kind(), OwnerOperationKind::Refresh);
+    let refresh = MetaOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
+    assert_eq!(refresh.operation_kind(), MetaOperationKind::Refresh);
 
-    let register = OwnerOrchestrateRequest::Register(LaneRegistrationRequest {
+    let register = MetaOrchestrateRequest::Register(LaneRegistrationRequest {
         role: role_vector(),
         authority: LaneAuthority::Structural,
     });
-    assert_eq!(register.operation_kind(), OwnerOperationKind::Register);
+    assert_eq!(register.operation_kind(), MetaOperationKind::Register);
 
-    let set_authority = OwnerOrchestrateRequest::SetAuthority(LaneAuthorityChange {
+    let set_authority = MetaOrchestrateRequest::SetAuthority(LaneAuthorityChange {
         lane: lane(),
         authority: LaneAuthority::Support,
     });
     assert_eq!(
         set_authority.operation_kind(),
-        OwnerOperationKind::SetAuthority
+        MetaOperationKind::SetAuthority
     );
 }

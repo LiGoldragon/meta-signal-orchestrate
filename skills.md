@@ -1,4 +1,4 @@
-# skills — owner-signal-orchestrate
+# skills — meta-signal-orchestrate
 
 Before editing, read:
 

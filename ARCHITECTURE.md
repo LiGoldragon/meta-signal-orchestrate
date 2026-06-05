@@ -1,11 +1,11 @@
-# owner-signal-orchestrate — architecture
+# meta-signal-orchestrate — architecture
 
-*OwnerSignal contract for privileged `orchestrate` role and
+*MetaSignal contract for privileged `orchestrate` role and
 repository administration.*
 
 ## 0 · TL;DR
 
-`owner-signal-orchestrate` is the owner-only Signal surface for
+`meta-signal-orchestrate` is the meta-signal Signal surface for
 mutating orchestration topology. Ordinary role claims, releases,
 handoffs, observations, and activity records stay in
 `signal-orchestrate`.
@@ -19,14 +19,14 @@ able to express role creation or repository-index refresh orders.
 This contract migrated from `signal-core` public `SignalVerb` wrappers
 to `signal-frame` contract-local operation roots.
 
-The public owner request surface is now:
+The public meta request surface is now:
 
 - `Create(CreateRoleOrder)`
 - `Retire(RetireRoleOrder)`
 - `Refresh(RefreshRepositoryIndexOrder)`
 
 There is no public `Mutate` / `Retract` tag in this contract. The
-owner socket remains the authority boundary; `orchestrate`
+meta socket remains the authority boundary; `orchestrate`
 owns the typed Component Commands (Layer 2) that lower contract
 operations to executable form, and projects them to payloadless Sema
 class labels (Layer 3) for observation. See
@@ -47,7 +47,7 @@ class labels (Layer 3) for observation. See
 | `RoleCreationRejected` | The create order was valid but conflicts with existing state. |
 | `RepositoryIndexRefreshed` | The local repository index was refreshed. |
 | `PartialApplied` | One or more downstream mutation legs succeeded while one or more sibling legs failed; orchestrate records the divergence instead of rolling back. |
-| `OwnerOrchestrateRequestUnimplemented` | The request is part of the owner vocabulary but not implemented by the current runtime. |
+| `MetaOrchestrateRequestUnimplemented` | The request is part of the meta vocabulary but not implemented by the current runtime. |
 
 ## 2 · Shared Nouns
 
@@ -67,8 +67,8 @@ scope records.
 
 | Constraint | Witness |
 |---|---|
-| Topology-changing orders live only in the owner contract. | Ordinary `signal-orchestrate::OrchestrateRequest` has no `CreateRoleOrder`, `RetireRoleOrder`, or `RefreshRepositoryIndexOrder` variants; this crate round-trips all owner variants. |
-| Every owner request has a contract-local operation root. | `OwnerOrchestrateRequest::operation_kind()` witnesses `Create`, `Retire`, and `Refresh`. |
+| Topology-changing orders live only in the meta-signal contract. | Ordinary `signal-orchestrate::OrchestrateRequest` has no `CreateRoleOrder`, `RetireRoleOrder`, or `RefreshRepositoryIndexOrder` variants; this crate round-trips all meta variants. |
+| Every meta request has a contract-local operation root. | `MetaOrchestrateRequest::operation_kind()` witnesses `Create`, `Retire`, and `Refresh`. |
 | Contract code contains no runtime. | Source contains no Kameo, Tokio, sema-engine, redb, filesystem mutation, GitHub, or ghq implementation. |
 | Harness assignment is typed, not hidden in a role string. | `CreateRoleOrder` carries `HarnessKind` beside `RoleIdentifier`. |
 
@@ -85,7 +85,7 @@ scope records.
 ## Code Map
 
 ```text
-src/lib.rs            owner request/reply records and signal_channel! invocation
+src/lib.rs            meta request/reply records and signal_channel! invocation
 tests/round_trip.rs   frame round trips and contract-local operation witnesses
 ```
 

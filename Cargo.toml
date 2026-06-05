@@ -1,15 +1,15 @@
 [package]
-name         = "owner-signal-orchestrate"
+name         = "meta-signal-orchestrate"
 version      = "0.1.0"
 edition      = "2024"
 rust-version = "1.85"
 license      = "MIT OR Apache-2.0"
-repository   = "https://github.com/LiGoldragon/owner-signal-orchestrate"
-description  = "OwnerSignal contract for privileged orchestrate role and repository administration."
+repository   = "https://github.com/LiGoldragon/meta-signal-orchestrate"
+description  = "MetaSignal contract for privileged orchestrate role and repository administration."
 publish      = false
 
 [lib]
-name = "owner_signal_orchestrate"
+name = "meta_signal_orchestrate"
 path = "src/lib.rs"
 
 [dependencies]

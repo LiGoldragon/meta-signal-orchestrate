@@ -1,5 +1,5 @@
 {
-  description = "owner-signal-orchestrate - OwnerSignal contract for orchestrate administration";
+  description = "meta-signal-orchestrate - MetaSignal contract for orchestrate administration";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -77,7 +77,7 @@
           );
         };
         devShells.default = pkgs.mkShell {
-          name = "owner-signal-orchestrate";
+          name = "meta-signal-orchestrate";
           packages = [
             pkgs.jujutsu
             pkgs.pkg-config
