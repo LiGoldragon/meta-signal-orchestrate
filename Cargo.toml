@@ -16,7 +16,7 @@ path = "src/lib.rs"
 
 [features]
 default   = []
-nota-text = ["dep:nota-next"]
+nota-text = ["dep:nota-next", "signal-orchestrate/nota-text"]
 
 [dependencies]
 signal-frame                = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main" }

@@ -301,14 +301,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
-name = "schema"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/schema.git?branch=main#bfe4ff40a1dca39cbc55f8cd5785a06ff2497abd"
-dependencies = [
- "nota-codec",
-]
-
-[[package]]
 name = "schema-next"
 version = "0.1.4"
 source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#77e71a410d03e3cc5c16cebd82202e712439e648"
@@ -318,19 +310,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "schema-rust"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#6f5a77f11115c043b93d005086cda8cbec349cd4"
-dependencies = [
- "proc-macro2",
- "quote",
- "schema",
-]
-
-[[package]]
 name = "schema-rust-next"
 version = "0.1.15"
-source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#c4761cc8dc610e15766111a8ca39ac038d598fda"
+source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#8ae5b59633cfa1570ca0dbb7bc0096a0d3829374"
 dependencies = [
  "prettyplease",
  "proc-macro2",
@@ -343,7 +325,7 @@ dependencies = [
 [[package]]
 name = "signal-frame"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#6f5a77f11115c043b93d005086cda8cbec349cd4"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#ed066bcce411faf4cb4c7e8aad45cf72f8c9aa9e"
 dependencies = [
  "nota-codec",
  "paste",
@@ -355,36 +337,24 @@ dependencies = [
 [[package]]
 name = "signal-frame-macros"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#6f5a77f11115c043b93d005086cda8cbec349cd4"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#ed066bcce411faf4cb4c7e8aad45cf72f8c9aa9e"
 dependencies = [
  "nota-codec",
  "proc-macro2",
  "quote",
- "schema",
- "schema-rust",
  "syn",
 ]
 
 [[package]]
 name = "signal-orchestrate"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?branch=main#2c8d7eba31f46f27a922a60a318df096e2258a3c"
+source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?branch=main#8d0fe742743de6ed2ac4274826084f59808f6e8f"
 dependencies = [
  "nota-codec",
+ "nota-next",
  "rkyv",
  "schema-rust-next",
  "signal-frame",
- "signal-sema",
- "thiserror",
-]
-
-[[package]]
-name = "signal-sema"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-sema.git?branch=main#c132e9a06431617055bad2a9bae7bbecdeacd4b0"
-dependencies = [
- "nota-codec",
- "rkyv",
  "thiserror",
 ]
 
