@@ -181,22 +181,18 @@ fn meta_orchestrate_replies_round_trip() {
 
 #[test]
 fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
-    use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode};
+    use nota_next::{NotaEncode, NotaSource};
 
     let operation = MetaOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
-    let mut encoder = Encoder::new();
-    operation
-        .into_request()
-        .encode(&mut encoder)
-        .expect("encode");
-    let text = encoder.into_string();
+    let text = operation.into_request().to_nota();
 
     assert_eq!(text, "(Refresh ())");
     assert!(!text.contains("Mutate"));
     assert!(!text.contains("Retract"));
 
-    let mut decoder = Decoder::new(&text);
-    let decoded = ChannelRequest::decode(&mut decoder).expect("decode");
+    let decoded = NotaSource::new(&text)
+        .parse::<ChannelRequest>()
+        .expect("decode");
     assert_eq!(
         decoded.payloads().head().operation_kind(),
         MetaOperationKind::Refresh

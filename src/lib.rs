@@ -5,7 +5,7 @@
 //! `signal-orchestrate`. This crate carries meta-signal
 //! orders that mutate the orchestration substrate itself.
 
-use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode, NotaEnum, NotaRecord};
+use nota_next::{Block, Delimiter, NotaBlock, NotaDecode, NotaDecodeError, NotaEncode};
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
 pub use signal_orchestrate::{
@@ -16,80 +16,53 @@ pub use signal_orchestrate::{
 
 pub mod schema;
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct CreateRoleOrder {
     pub role: RoleIdentifier,
     pub harness: HarnessKind,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct RetireRoleOrder {
     pub role: RoleIdentifier,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub enum Retirement {
     Role(RetireRoleOrder),
     Lane(LaneIdentifier),
 }
 
-impl NotaEncode for Retirement {
-    fn encode(&self, encoder: &mut Encoder) -> nota_codec::Result<()> {
-        match self {
-            Self::Role(order) => {
-                encoder.start_record("Role")?;
-                order.encode(encoder)?;
-                encoder.end_record()
-            }
-            Self::Lane(lane) => {
-                encoder.start_record("Lane")?;
-                lane.encode(encoder)?;
-                encoder.end_record()
-            }
-        }
-    }
-}
-
-impl NotaDecode for Retirement {
-    fn decode(decoder: &mut Decoder<'_>) -> nota_codec::Result<Self> {
-        let head = decoder.peek_record_head()?;
-        match head.as_str() {
-            "Role" => {
-                decoder.expect_record_head("Role")?;
-                let order = RetireRoleOrder::decode(decoder)?;
-                decoder.expect_record_end()?;
-                Ok(Self::Role(order))
-            }
-            "Lane" => {
-                decoder.expect_record_head("Lane")?;
-                let lane = LaneIdentifier::decode(decoder)?;
-                decoder.expect_record_end()?;
-                Ok(Self::Lane(lane))
-            }
-            other => Err(nota_codec::Error::UnknownVariant {
-                enum_name: "Retirement",
-                got: other.to_string(),
-            }),
-        }
-    }
-}
-
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct RefreshRepositoryIndexOrder {}
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct LaneRegistrationRequest {
     pub role: Role,
     pub authority: LaneAuthority,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct LaneAuthorityChange {
     pub lane: LaneIdentifier,
     pub authority: LaneAuthority,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct RoleCreated {
     pub role: RoleIdentifier,
     pub harness: HarnessKind,
@@ -97,19 +70,33 @@ pub struct RoleCreated {
     pub report_lane_path: WirePath,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct RoleRetired {
     pub role: RoleIdentifier,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct RoleCreationRejected {
     pub role: RoleIdentifier,
     pub reason: RoleCreationRejectionReason,
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 pub enum RoleCreationRejectionReason {
     RoleAlreadyExists,
@@ -117,38 +104,73 @@ pub enum RoleCreationRejectionReason {
     ReportLaneAlreadyExists,
 }
 
-#[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, Copy, PartialEq, Eq,
-)]
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RepositoryIndexRefreshed {
     pub repositories: u32,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+impl NotaDecode for RepositoryIndexRefreshed {
+    fn from_nota_block(block: &Block) -> Result<Self, NotaDecodeError> {
+        let children = NotaBlock::new(block).expect_children(
+            Delimiter::Parenthesis,
+            "RepositoryIndexRefreshed",
+            1,
+        )?;
+        let repositories = u32::try_from(u64::from_nota_block(&children[0])?)
+            .map_err(|error| NotaDecodeError::Parse(error.to_string()))?;
+        Ok(Self { repositories })
+    }
+}
+
+impl NotaEncode for RepositoryIndexRefreshed {
+    fn to_nota(&self) -> String {
+        Delimiter::Parenthesis.wrap([u64::from(self.repositories).to_nota()])
+    }
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct LaneRegistered {
     pub registration: LaneRegistration,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct LaneRetired {
     pub lane: LaneIdentifier,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct LaneAuthoritySet {
     pub lane: LaneIdentifier,
     pub authority: LaneAuthority,
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 pub enum MetaOrchestrateUnimplementedReason {
     NotBuiltYet,
     DependencyNotReady,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct MetaOrchestrateRequestUnimplemented {
     pub operation: MetaOperationKind,
     pub reason: MetaOrchestrateUnimplementedReason,

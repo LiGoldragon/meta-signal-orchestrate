@@ -48,7 +48,9 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
         Some("CreateRoleOrder")
     );
 
-    assert!(schema.resolved_imports().iter().any(|import| import
-        .use_item()
-        .contains("signal_orchestrate::schema::lib::Role")));
+    assert!(schema.resolved_imports().iter().any(|import| {
+        import
+            .use_item()
+            .contains("signal_orchestrate::schema::lib::Role")
+    }));
 }
