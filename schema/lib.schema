@@ -1,0 +1,42 @@
+{ RoleIdentifier signal-orchestrate:lib:RoleIdentifier
+  Role signal-orchestrate:lib:Role
+  HarnessKind signal-orchestrate:lib:HarnessKind
+  LaneAuthority signal-orchestrate:lib:LaneAuthority
+  LaneIdentifier signal-orchestrate:lib:LaneIdentifier
+  LaneRegistration signal-orchestrate:lib:LaneRegistration
+  WirePath signal-orchestrate:lib:WirePath
+  PartialApplied signal-orchestrate:lib:PartialApplied }
+[(Create CreateRoleOrder)
+ (Retire Retirement)
+ (Refresh RefreshRepositoryIndexOrder)
+ (Register LaneRegistrationRequest)
+ (SetAuthority LaneAuthorityChange)]
+[(RoleCreated RoleCreated)
+ (RoleRetired RoleRetired)
+ (RoleCreationRejected RoleCreationRejected)
+ (RepositoryIndexRefreshed RepositoryIndexRefreshed)
+ (LaneRegistered LaneRegistered)
+ (LaneRetired LaneRetired)
+ (LaneAuthoritySet LaneAuthoritySet)
+ (PartialApplied PartialApplied)
+ (MetaOrchestrateRequestUnimplemented MetaOrchestrateRequestUnimplemented)]
+{
+  CreateRoleOrder { role RoleIdentifier harness HarnessKind }
+  RetireRoleOrder { role RoleIdentifier }
+  Retirement [(Role RetireRoleOrder) (Lane LaneIdentifier)]
+  RefreshRepositoryIndexOrder {}
+  LaneRegistrationRequest { role Role authority LaneAuthority }
+  LaneAuthorityChange { lane LaneIdentifier authority LaneAuthority }
+
+  RoleCreated { role RoleIdentifier harness HarnessKind reportRepositoryPath WirePath reportLanePath WirePath }
+  RoleRetired { role RoleIdentifier }
+  RoleCreationRejected { role RoleIdentifier reason RoleCreationRejectionReason }
+  RoleCreationRejectionReason [RoleAlreadyExists ReportRepositoryAlreadyExists ReportLaneAlreadyExists]
+  RepositoryIndexRefreshed { repositories Integer }
+  LaneRegistered { registration LaneRegistration }
+  LaneRetired { lane LaneIdentifier }
+  LaneAuthoritySet { lane LaneIdentifier authority LaneAuthority }
+  MetaOperationKind [Create Retire Refresh Register SetAuthority]
+  MetaOrchestrateUnimplementedReason [NotBuiltYet DependencyNotReady]
+  MetaOrchestrateRequestUnimplemented { operation MetaOperationKind reason MetaOrchestrateUnimplementedReason }
+}

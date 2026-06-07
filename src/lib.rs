@@ -14,6 +14,8 @@ pub use signal_orchestrate::{
     RoleIdentifier, RoleName, RoleToken, ScopeReason, WirePath,
 };
 
+pub mod schema;
+
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
 pub struct CreateRoleOrder {
     pub role: RoleIdentifier,
