@@ -15,11 +15,11 @@ name = "meta_signal_orchestrate"
 path = "src/lib.rs"
 
 [features]
-default   = []
-nota-text = ["signal-orchestrate/nota-text"]
+default   = ["nota-text"]
+nota-text = ["signal-orchestrate/nota-text", "signal-frame/nota-text"]
 
 [dependencies]
-signal-frame                = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main" }
+signal-frame                = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", default-features = false }
 signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate.git", branch = "main" }
 nota-next                   = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main" }
 rkyv                        = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
