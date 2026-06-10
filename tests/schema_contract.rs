@@ -8,11 +8,15 @@ fn schema_file() -> PathBuf {
 }
 
 fn signal_orchestrate_schema_directory() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .expect("meta-signal-orchestrate has a parent directory")
-        .join("signal-orchestrate")
-        .join("schema")
+    if let Some(schema_directory) = option_env!("SIGNAL_ORCHESTRATE_SCHEMA_DIR") {
+        PathBuf::from(schema_directory)
+    } else {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("meta-signal-orchestrate has a parent directory")
+            .join("signal-orchestrate")
+            .join("schema")
+    }
 }
 
 #[test]
@@ -22,13 +26,13 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
     let resolver = ImportResolver::new().with_dependency(
         "signal-orchestrate",
         signal_orchestrate_schema_directory(),
-        "0.2.0",
+        "0.3.0",
     );
     let engine = SchemaEngine::default();
     let schema = engine
         .lower_schema_source_with_resolver(
             artifact.source(),
-            SchemaIdentity::new("meta-signal-orchestrate:lib", "0.2.0"),
+            SchemaIdentity::new("meta-signal-orchestrate:lib", "0.3.0"),
             &resolver,
         )
         .expect("schema lowers");

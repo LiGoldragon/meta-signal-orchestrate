@@ -22,10 +22,15 @@ impl SchemaBuild {
     fn run(&self) {
         println!("cargo:rerun-if-changed=schema/lib.schema");
         println!("cargo:rerun-if-env-changed=DEP_SIGNAL_ORCHESTRATE_SCHEMA_DIR");
+        let signal_orchestrate_schema = self.signal_orchestrate_schema();
+        println!(
+            "cargo::rustc-env=SIGNAL_ORCHESTRATE_SCHEMA_DIR={}",
+            signal_orchestrate_schema.schema_directory().display()
+        );
         CargoSchemaMetadata::new("meta-signal-orchestrate").emit_schema_directory(&self.crate_root);
         GenerationDriver::new(
-            GenerationPlan::wire_contract(&self.crate_root, "meta-signal-orchestrate", "0.2.0")
-                .with_dependency_schema(self.signal_orchestrate_schema()),
+            GenerationPlan::wire_contract(&self.crate_root, "meta-signal-orchestrate", "0.3.0")
+                .with_dependency_schema(signal_orchestrate_schema),
         )
         .generate()
         .expect("generate meta-signal-orchestrate schema artifacts")
@@ -34,7 +39,7 @@ impl SchemaBuild {
     }
 
     fn signal_orchestrate_schema(&self) -> DependencySchema {
-        DependencySchema::from_cargo_metadata("signal-orchestrate", "signal-orchestrate", "0.2.0")
+        DependencySchema::from_cargo_metadata("signal-orchestrate", "signal-orchestrate", "0.3.0")
             .expect("read signal-orchestrate schema metadata")
             .expect("signal-orchestrate must emit schema metadata")
     }

@@ -1,12 +1,12 @@
 use meta_signal_orchestrate::{
-    ApplicationFailure, ApplicationFailureReason, ApplicationSuccess, ChannelRequest,
-    CreateRoleOrder, DownstreamComponent, Frame, FrameBody, HarnessKind, LaneAuthority,
-    LaneAuthorityChange, LaneAuthoritySet, LaneIdentifier, LaneRegistered, LaneRegistration,
-    LaneRegistrationRequest, LaneRetired, MetaOperationKind, MetaOrchestrateReply,
-    MetaOrchestrateRequest, MetaOrchestrateRequestUnimplemented,
-    MetaOrchestrateUnimplementedReason, PartialApplied, RefreshRepositoryIndexOrder,
-    RepositoryIndexRefreshed, RetireRoleOrder, Retirement, Role, RoleCreated, RoleCreationRejected,
-    RoleCreationRejectionReason, RoleIdentifier, RoleRetired, RoleToken, ScopeReason, WirePath,
+    ApplicationFailure, ApplicationFailureReason, ApplicationSuccess, CreateRoleOrder,
+    DownstreamComponent, Frame, FrameBody, HarnessKind, LaneAuthority, LaneAuthorityChange,
+    LaneAuthoritySet, LaneIdentifier, LaneRegistered, LaneRegistration, LaneRegistrationRequest,
+    LaneRetired, MetaOperationKind, MetaOrchestrateReply, MetaOrchestrateRequest,
+    MetaOrchestrateRequestUnimplemented, MetaOrchestrateUnimplementedReason, PartialApplied,
+    RefreshRepositoryIndexOrder, RepositoryIndexRefreshed, RetireRoleOrder, Retirement, Role,
+    RoleCreated, RoleCreationRejected, RoleCreationRejectionReason, RoleIdentifier, RoleRetired,
+    RoleToken, ScopeReason, WirePath,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -180,6 +180,7 @@ fn meta_orchestrate_replies_round_trip() {
 }
 
 #[test]
+#[cfg(feature = "nota-text")]
 fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
     use nota_next::{NotaEncode, NotaSource};
 
@@ -191,7 +192,7 @@ fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
     assert!(!text.contains("Retract"));
 
     let decoded = NotaSource::new(&text)
-        .parse::<ChannelRequest>()
+        .parse::<meta_signal_orchestrate::ChannelRequest>()
         .expect("decode");
     assert_eq!(
         decoded.payloads().head().operation_kind(),

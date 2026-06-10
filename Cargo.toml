@@ -1,8 +1,8 @@
 [package]
 name         = "meta-signal-orchestrate"
-version      = "0.2.0"
+version      = "0.3.0"
 edition      = "2024"
-rust-version = "1.85"
+rust-version = "1.89"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/LiGoldragon/meta-signal-orchestrate"
 description  = "MetaSignal contract for privileged orchestrate role and repository administration."
