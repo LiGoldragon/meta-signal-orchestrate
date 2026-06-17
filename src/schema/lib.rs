@@ -263,6 +263,24 @@ impl From<Integer> for RepositoryIndexRefreshed {
         Self::new(payload)
     }
 }
+#[rustfmt::skip]
+impl std::fmt::Display for RepositoryIndexRefreshed {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.payload().fmt(formatter)
+    }
+}
+#[rustfmt::skip]
+impl PartialEq<u64> for RepositoryIndexRefreshed {
+    fn eq(&self, other: &u64) -> bool {
+        self.payload() == other
+    }
+}
+#[rustfmt::skip]
+impl PartialOrd<u64> for RepositoryIndexRefreshed {
+    fn partial_cmp(&self, other: &u64) -> Option<std::cmp::Ordering> {
+        self.payload().partial_cmp(other)
+    }
+}
 
 #[rustfmt::skip]
 impl LaneRegistered {

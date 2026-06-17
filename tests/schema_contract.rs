@@ -1,4 +1,6 @@
-use schema_next::{ImportResolver, SchemaEngine, SchemaIdentity, SchemaSourceArtifact};
+use schema_next::{
+    EnumDeclaration, ImportResolver, Root, SchemaEngine, SchemaIdentity, SchemaSourceArtifact,
+};
 use std::path::PathBuf;
 
 fn schema_file() -> PathBuf {
@@ -19,6 +21,10 @@ fn signal_orchestrate_schema_directory() -> PathBuf {
     }
 }
 
+fn root_enum(root: &Root) -> &EnumDeclaration {
+    root.as_enum().expect("root is the enum-body form")
+}
+
 #[test]
 fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() {
     let source = std::fs::read_to_string(schema_file()).expect("read meta schema");
@@ -37,11 +43,14 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
         )
         .expect("schema lowers");
 
-    assert_eq!(schema.input().variants.len(), 5);
-    assert_eq!(schema.output().variants.len(), 9);
+    let input = root_enum(schema.input());
+    let output = root_enum(schema.output());
+
+    assert_eq!(input.variants.len(), 5);
+    assert_eq!(output.variants.len(), 9);
     assert_eq!(schema.resolved_imports().len(), 8);
 
-    let create = &schema.input().variants[0];
+    let create = &input.variants[0];
     assert_eq!(create.name.as_str(), "Create");
     assert_eq!(
         create
