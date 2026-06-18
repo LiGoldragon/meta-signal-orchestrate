@@ -339,7 +339,7 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 [[package]]
 name = "schema-cc"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#e721626038e81cce49a7b193b07903b2868e1f68"
+source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#1de72dde6241b15299cd37fe096b3ef0e2f618b6"
 dependencies = [
  "nota-next",
  "prettyplease",
@@ -352,7 +352,7 @@ dependencies = [
 [[package]]
 name = "schema-next"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#e721626038e81cce49a7b193b07903b2868e1f68"
+source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#1de72dde6241b15299cd37fe096b3ef0e2f618b6"
 dependencies = [
  "blake3",
  "nota-next",
@@ -364,7 +364,7 @@ dependencies = [
 [[package]]
 name = "schema-rust-next"
 version = "0.5.3"
-source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#6e04d70ff679181938c50b6a5488035efa0979b8"
+source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#733b76d39cbd3009bedd22899f2695b7d68b283a"
 dependencies = [
  "prettyplease",
  "proc-macro2",
@@ -405,7 +405,7 @@ dependencies = [
 [[package]]
 name = "signal-orchestrate"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?branch=main#4e8fdc792e55622cfc1e148d345d91c9d263b486"
+source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?branch=main#3b6241a6678bb17385af7da92ee1c72e2c537ac9"
 dependencies = [
  "nota-next",
  "rkyv",

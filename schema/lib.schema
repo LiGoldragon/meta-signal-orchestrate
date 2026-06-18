@@ -21,22 +21,22 @@
  (PartialApplied PartialApplied)
  (MetaOrchestrateRequestUnimplemented MetaOrchestrateRequestUnimplemented)]
 {
-  CreateRoleOrder { role RoleIdentifier harness HarnessKind }
-  RetireRoleOrder { role RoleIdentifier }
+  CreateRoleOrder { role.RoleIdentifier harness.HarnessKind }
+  RetireRoleOrder { role.RoleIdentifier }
   Retirement [(Role RetireRoleOrder) (Lane LaneIdentifier)]
   RefreshRepositoryIndexOrder {}
-  LaneRegistrationRequest { role Role authority LaneAuthority }
-  LaneAuthorityChange { lane LaneIdentifier authority LaneAuthority }
+  LaneRegistrationRequest { Role authority.LaneAuthority }
+  LaneAuthorityChange { lane.LaneIdentifier authority.LaneAuthority }
 
-  RoleCreated { role RoleIdentifier harness HarnessKind reportRepositoryPath WirePath reportLanePath WirePath }
-  RoleRetired { role RoleIdentifier }
-  RoleCreationRejected { role RoleIdentifier reason RoleCreationRejectionReason }
+  RoleCreated { role.RoleIdentifier harness.HarnessKind report_repository_path.WirePath report_lane_path.WirePath }
+  RoleRetired { role.RoleIdentifier }
+  RoleCreationRejected { role.RoleIdentifier reason.RoleCreationRejectionReason }
   RoleCreationRejectionReason [RoleAlreadyExists ReportRepositoryAlreadyExists ReportLaneAlreadyExists]
-  RepositoryIndexRefreshed { repositories Integer }
-  LaneRegistered { registration LaneRegistration }
-  LaneRetired { lane LaneIdentifier }
-  LaneAuthoritySet { lane LaneIdentifier authority LaneAuthority }
+  RepositoryIndexRefreshed { repositories.Integer }
+  LaneRegistered { registration.LaneRegistration }
+  LaneRetired { lane.LaneIdentifier }
+  LaneAuthoritySet { lane.LaneIdentifier authority.LaneAuthority }
   MetaOperationKind [Create Retire Refresh Register SetAuthority]
   MetaOrchestrateUnimplementedReason [NotBuiltYet DependencyNotReady]
-  MetaOrchestrateRequestUnimplemented { operation MetaOperationKind reason MetaOrchestrateUnimplementedReason }
+  MetaOrchestrateRequestUnimplemented { operation.MetaOperationKind reason.MetaOrchestrateUnimplementedReason }
 }
