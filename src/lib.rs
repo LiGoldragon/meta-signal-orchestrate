@@ -9,9 +9,10 @@ use nota_next::{Block, Delimiter, NotaBlock, NotaDecode, NotaDecodeError, NotaEn
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
 pub use signal_orchestrate::{
-    ApplicationFailure, ApplicationFailureReason, ApplicationSuccess, DownstreamComponent,
-    HarnessKind, LaneAuthority, LaneIdentifier, LaneRegistration, PartialApplied, Role,
-    RoleIdentifier, RoleName, RoleToken, ScopeReason, WirePath,
+    ApplicationFailure, ApplicationFailureReason, ApplicationSuccess, BranchName,
+    DownstreamComponent, HarnessKind, LaneAuthority, LaneIdentifier, LaneRegistration, LaneName,
+    PartialApplied, PurposeText, PushedState, RepositoryName, Role, RoleIdentifier, RoleName,
+    RoleToken, ScopeReason, TimestampNanos, WirePath, Worktree, WorktreeStatus,
 };
 
 pub mod schema;
@@ -43,6 +44,24 @@ pub enum Retirement {
     Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RefreshRepositoryIndexOrder {}
+
+/// Register (upsert) a single worktree the agent created. Carries the
+/// full [`Worktree`] record; the daemon may re-derive `last_activity`
+/// and `pushed_state` from the filesystem. Reply: [`WorktreeRegistered`].
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct RegisterWorktree {
+    pub worktree: Worktree,
+}
+
+/// Re-scan `~/wt/github.com/LiGoldragon/<repo>/<name>` and refresh the
+/// whole worktree index, mirroring [`RefreshRepositoryIndexOrder`].
+/// Reply: [`WorktreeIndexRefreshed`].
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct RefreshWorktreeIndexOrder {}
 
 #[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
@@ -128,6 +147,37 @@ impl NotaEncode for RepositoryIndexRefreshed {
     }
 }
 
+/// Ack for [`RegisterWorktree`] — echoes the registered worktree.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct WorktreeRegistered {
+    pub worktree: Worktree,
+}
+
+/// Ack for [`RefreshWorktreeIndexOrder`] — count of worktrees the scan
+/// found, mirroring [`RepositoryIndexRefreshed`].
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WorktreeIndexRefreshed {
+    pub worktrees: u32,
+}
+
+impl NotaDecode for WorktreeIndexRefreshed {
+    fn from_nota_block(block: &Block) -> Result<Self, NotaDecodeError> {
+        let children =
+            NotaBlock::new(block).expect_children(Delimiter::Parenthesis, "WorktreeIndexRefreshed", 1)?;
+        let worktrees = u32::try_from(u64::from_nota_block(&children[0])?)
+            .map_err(|error| NotaDecodeError::Parse(error.to_string()))?;
+        Ok(Self { worktrees })
+    }
+}
+
+impl NotaEncode for WorktreeIndexRefreshed {
+    fn to_nota(&self) -> String {
+        Delimiter::Parenthesis.wrap([u64::from(self.worktrees).to_nota()])
+    }
+}
+
 #[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
 )]
@@ -182,6 +232,8 @@ signal_channel! {
         operation Refresh(RefreshRepositoryIndexOrder),
         operation Register(LaneRegistrationRequest),
         operation SetAuthority(LaneAuthorityChange),
+        operation RegisterWorktree(RegisterWorktree),
+        operation RefreshWorktreeIndex(RefreshWorktreeIndexOrder),
     }
     reply MetaOrchestrateReply {
         RoleCreated(RoleCreated),
@@ -191,6 +243,8 @@ signal_channel! {
         LaneRegistered(LaneRegistered),
         LaneRetired(LaneRetired),
         LaneAuthoritySet(LaneAuthoritySet),
+        WorktreeRegistered(WorktreeRegistered),
+        WorktreeIndexRefreshed(WorktreeIndexRefreshed),
         PartialApplied(PartialApplied),
         MetaOrchestrateRequestUnimplemented(MetaOrchestrateRequestUnimplemented),
     }
@@ -240,5 +294,17 @@ impl From<LaneRegistrationRequest> for MetaOrchestrateRequest {
 impl From<LaneAuthorityChange> for MetaOrchestrateRequest {
     fn from(payload: LaneAuthorityChange) -> Self {
         Self::SetAuthority(payload)
+    }
+}
+
+impl From<RegisterWorktree> for MetaOrchestrateRequest {
+    fn from(payload: RegisterWorktree) -> Self {
+        Self::RegisterWorktree(payload)
+    }
+}
+
+impl From<RefreshWorktreeIndexOrder> for MetaOrchestrateRequest {
+    fn from(payload: RefreshWorktreeIndexOrder) -> Self {
+        Self::RefreshWorktreeIndex(payload)
     }
 }

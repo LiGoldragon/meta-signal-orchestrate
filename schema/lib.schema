@@ -5,12 +5,15 @@
   LaneIdentifier signal-orchestrate:lib:LaneIdentifier
   LaneRegistration signal-orchestrate:lib:LaneRegistration
   WirePath signal-orchestrate:lib:WirePath
+  Worktree signal-orchestrate:lib:Worktree
   PartialApplied signal-orchestrate:lib:PartialApplied }
 [(Create CreateRoleOrder)
  (Retire Retirement)
  (Refresh RefreshRepositoryIndexOrder)
  (Register LaneRegistrationRequest)
- (SetAuthority LaneAuthorityChange)]
+ (SetAuthority LaneAuthorityChange)
+ (RegisterWorktree RegisterWorktree)
+ (RefreshWorktreeIndex RefreshWorktreeIndexOrder)]
 [(RoleCreated RoleCreated)
  (RoleRetired RoleRetired)
  (RoleCreationRejected RoleCreationRejected)
@@ -18,6 +21,8 @@
  (LaneRegistered LaneRegistered)
  (LaneRetired LaneRetired)
  (LaneAuthoritySet LaneAuthoritySet)
+ (WorktreeRegistered WorktreeRegistered)
+ (WorktreeIndexRefreshed WorktreeIndexRefreshed)
  (PartialApplied PartialApplied)
  (MetaOrchestrateRequestUnimplemented MetaOrchestrateRequestUnimplemented)]
 {
@@ -27,6 +32,8 @@
   RefreshRepositoryIndexOrder {}
   LaneRegistrationRequest { Role authority.LaneAuthority }
   LaneAuthorityChange { lane.LaneIdentifier authority.LaneAuthority }
+  RegisterWorktree { Worktree }
+  RefreshWorktreeIndexOrder {}
 
   RoleCreated { role.RoleIdentifier harness.HarnessKind report_repository_path.WirePath report_lane_path.WirePath }
   RoleRetired { role.RoleIdentifier }
@@ -36,7 +43,9 @@
   LaneRegistered { registration.LaneRegistration }
   LaneRetired { lane.LaneIdentifier }
   LaneAuthoritySet { lane.LaneIdentifier authority.LaneAuthority }
-  MetaOperationKind [Create Retire Refresh Register SetAuthority]
+  WorktreeRegistered { Worktree }
+  WorktreeIndexRefreshed { worktrees.Integer }
+  MetaOperationKind [Create Retire Refresh Register SetAuthority RegisterWorktree RefreshWorktreeIndex]
   MetaOrchestrateUnimplementedReason [NotBuiltYet DependencyNotReady]
   MetaOrchestrateRequestUnimplemented { operation.MetaOperationKind reason.MetaOrchestrateUnimplementedReason }
 }

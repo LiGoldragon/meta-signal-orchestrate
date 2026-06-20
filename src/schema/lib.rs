@@ -24,6 +24,8 @@ pub use signal_orchestrate::schema::lib::LaneRegistration as LaneRegistration;
 #[rustfmt::skip]
 pub use signal_orchestrate::schema::lib::WirePath as WirePath;
 #[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::Worktree as Worktree;
+#[rustfmt::skip]
 pub use signal_orchestrate::schema::lib::PartialApplied as PartialApplied;
 
 #[rustfmt::skip]
@@ -71,6 +73,16 @@ pub struct LaneAuthorityChange {
     pub lane: LaneIdentifier,
     pub authority: LaneAuthority,
 }
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RegisterWorktree(Worktree);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RefreshWorktreeIndexOrder {}
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -138,6 +150,16 @@ pub struct LaneAuthoritySet {
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct WorktreeRegistered(Worktree);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct WorktreeIndexRefreshed(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -154,6 +176,8 @@ pub enum MetaOperationKind {
     Refresh,
     Register,
     SetAuthority,
+    RegisterWorktree,
+    RefreshWorktreeIndex,
 }
 
 #[rustfmt::skip]
@@ -190,6 +214,8 @@ pub enum Input {
     Refresh(RefreshRepositoryIndexOrder),
     Register(LaneRegistrationRequest),
     SetAuthority(LaneAuthorityChange),
+    RegisterWorktree(RegisterWorktree),
+    RefreshWorktreeIndex(RefreshWorktreeIndexOrder),
 }
 
 #[rustfmt::skip]
@@ -203,6 +229,8 @@ pub enum Output {
     LaneRegistered(LaneRegistered),
     LaneRetired(LaneRetired),
     LaneAuthoritySet(LaneAuthoritySet),
+    WorktreeRegistered(WorktreeRegistered),
+    WorktreeIndexRefreshed(WorktreeIndexRefreshed),
     PartialApplied(PartialApplied),
     MetaOrchestrateRequestUnimplemented(MetaOrchestrateRequestUnimplemented),
 }
@@ -222,6 +250,25 @@ impl RetireRoleOrder {
 #[rustfmt::skip]
 impl From<RoleIdentifier> for RetireRoleOrder {
     fn from(payload: RoleIdentifier) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl RegisterWorktree {
+    pub fn new(payload: Worktree) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Worktree {
+        &self.0
+    }
+    pub fn into_payload(self) -> Worktree {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Worktree> for RegisterWorktree {
+    fn from(payload: Worktree) -> Self {
         Self::new(payload)
     }
 }
@@ -261,24 +308,6 @@ impl RepositoryIndexRefreshed {
 impl From<Integer> for RepositoryIndexRefreshed {
     fn from(payload: Integer) -> Self {
         Self::new(payload)
-    }
-}
-#[rustfmt::skip]
-impl std::fmt::Display for RepositoryIndexRefreshed {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.payload().fmt(formatter)
-    }
-}
-#[rustfmt::skip]
-impl PartialEq<u64> for RepositoryIndexRefreshed {
-    fn eq(&self, other: &u64) -> bool {
-        self.payload() == other
-    }
-}
-#[rustfmt::skip]
-impl PartialOrd<u64> for RepositoryIndexRefreshed {
-    fn partial_cmp(&self, other: &u64) -> Option<std::cmp::Ordering> {
-        self.payload().partial_cmp(other)
     }
 }
 
@@ -321,6 +350,44 @@ impl From<LaneIdentifier> for LaneRetired {
 }
 
 #[rustfmt::skip]
+impl WorktreeRegistered {
+    pub fn new(payload: Worktree) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Worktree {
+        &self.0
+    }
+    pub fn into_payload(self) -> Worktree {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Worktree> for WorktreeRegistered {
+    fn from(payload: Worktree) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl WorktreeIndexRefreshed {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for WorktreeIndexRefreshed {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl Retirement {
     pub fn role(payload: RoleIdentifier) -> Self {
         Self::Role(RetireRoleOrder::new(payload))
@@ -347,6 +414,12 @@ impl Input {
     pub fn set_authority(payload: LaneAuthorityChange) -> Self {
         Self::SetAuthority(payload)
     }
+    pub fn register_worktree(payload: Worktree) -> Self {
+        Self::RegisterWorktree(RegisterWorktree::new(payload))
+    }
+    pub fn refresh_worktree_index(payload: RefreshWorktreeIndexOrder) -> Self {
+        Self::RefreshWorktreeIndex(payload)
+    }
 }
 
 #[rustfmt::skip]
@@ -371,6 +444,12 @@ impl Output {
     }
     pub fn lane_authority_set(payload: LaneAuthoritySet) -> Self {
         Self::LaneAuthoritySet(payload)
+    }
+    pub fn worktree_registered(payload: Worktree) -> Self {
+        Self::WorktreeRegistered(WorktreeRegistered::new(payload))
+    }
+    pub fn worktree_index_refreshed(payload: Integer) -> Self {
+        Self::WorktreeIndexRefreshed(WorktreeIndexRefreshed::new(payload))
     }
     pub fn partial_applied(payload: PartialApplied) -> Self {
         Self::PartialApplied(payload)
@@ -432,6 +511,20 @@ impl From<LaneAuthorityChange> for Input {
 }
 
 #[rustfmt::skip]
+impl From<RegisterWorktree> for Input {
+    fn from(payload: RegisterWorktree) -> Self {
+        Self::RegisterWorktree(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<RefreshWorktreeIndexOrder> for Input {
+    fn from(payload: RefreshWorktreeIndexOrder) -> Self {
+        Self::RefreshWorktreeIndex(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<RoleCreated> for Output {
     fn from(payload: RoleCreated) -> Self {
         Self::RoleCreated(payload)
@@ -477,6 +570,20 @@ impl From<LaneRetired> for Output {
 impl From<LaneAuthoritySet> for Output {
     fn from(payload: LaneAuthoritySet) -> Self {
         Self::LaneAuthoritySet(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<WorktreeRegistered> for Output {
+    fn from(payload: WorktreeRegistered) -> Self {
+        Self::WorktreeRegistered(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<WorktreeIndexRefreshed> for Output {
+    fn from(payload: WorktreeIndexRefreshed) -> Self {
+        Self::WorktreeIndexRefreshed(payload)
     }
 }
 
@@ -533,6 +640,8 @@ pub mod short_header {
     pub const INPUT_REFRESH: u64 = 0x0002000000000000;
     pub const INPUT_REGISTER: u64 = 0x0003000000000000;
     pub const INPUT_SET_AUTHORITY: u64 = 0x0004000000000000;
+    pub const INPUT_REGISTER_WORKTREE: u64 = 0x0005000000000000;
+    pub const INPUT_REFRESH_WORKTREE_INDEX: u64 = 0x0006000000000000;
     pub const OUTPUT_ROLE_CREATED: u64 = 0x0100000000000000;
     pub const OUTPUT_ROLE_RETIRED: u64 = 0x0101000000000000;
     pub const OUTPUT_ROLE_CREATION_REJECTED: u64 = 0x0102000000000000;
@@ -540,8 +649,10 @@ pub mod short_header {
     pub const OUTPUT_LANE_REGISTERED: u64 = 0x0104000000000000;
     pub const OUTPUT_LANE_RETIRED: u64 = 0x0105000000000000;
     pub const OUTPUT_LANE_AUTHORITY_SET: u64 = 0x0106000000000000;
-    pub const OUTPUT_PARTIAL_APPLIED: u64 = 0x0107000000000000;
-    pub const OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED: u64 = 0x0108000000000000;
+    pub const OUTPUT_WORKTREE_REGISTERED: u64 = 0x0107000000000000;
+    pub const OUTPUT_WORKTREE_INDEX_REFRESHED: u64 = 0x0108000000000000;
+    pub const OUTPUT_PARTIAL_APPLIED: u64 = 0x0109000000000000;
+    pub const OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED: u64 = 0x010A000000000000;
 }
 
 #[rustfmt::skip]
@@ -597,6 +708,8 @@ pub enum InputRoute {
     Refresh,
     Register,
     SetAuthority,
+    RegisterWorktree,
+    RefreshWorktreeIndex,
 }
 
 #[rustfmt::skip]
@@ -619,6 +732,8 @@ pub enum OutputRoute {
     LaneRegistered,
     LaneRetired,
     LaneAuthoritySet,
+    WorktreeRegistered,
+    WorktreeIndexRefreshed,
     PartialApplied,
     MetaOrchestrateRequestUnimplemented,
 }
@@ -632,6 +747,8 @@ impl Input {
             Self::Refresh(_) => InputRoute::Refresh,
             Self::Register(_) => InputRoute::Register,
             Self::SetAuthority(_) => InputRoute::SetAuthority,
+            Self::RegisterWorktree(_) => InputRoute::RegisterWorktree,
+            Self::RefreshWorktreeIndex(_) => InputRoute::RefreshWorktreeIndex,
         }
     }
     pub fn short_header(&self) -> u64 {
@@ -641,6 +758,8 @@ impl Input {
             Self::Refresh(_) => short_header::INPUT_REFRESH,
             Self::Register(_) => short_header::INPUT_REGISTER,
             Self::SetAuthority(_) => short_header::INPUT_SET_AUTHORITY,
+            Self::RegisterWorktree(_) => short_header::INPUT_REGISTER_WORKTREE,
+            Self::RefreshWorktreeIndex(_) => short_header::INPUT_REFRESH_WORKTREE_INDEX,
         }
     }
     pub fn route_from_short_header(header: u64) -> Result<InputRoute, SignalFrameError> {
@@ -650,6 +769,10 @@ impl Input {
             short_header::INPUT_REFRESH => Ok(InputRoute::Refresh),
             short_header::INPUT_REGISTER => Ok(InputRoute::Register),
             short_header::INPUT_SET_AUTHORITY => Ok(InputRoute::SetAuthority),
+            short_header::INPUT_REGISTER_WORKTREE => Ok(InputRoute::RegisterWorktree),
+            short_header::INPUT_REFRESH_WORKTREE_INDEX => {
+                Ok(InputRoute::RefreshWorktreeIndex)
+            }
             _ => {
                 Err(SignalFrameError::UnknownHeader {
                     root_enum: "Input",
@@ -707,6 +830,8 @@ impl Output {
             Self::LaneRegistered(_) => OutputRoute::LaneRegistered,
             Self::LaneRetired(_) => OutputRoute::LaneRetired,
             Self::LaneAuthoritySet(_) => OutputRoute::LaneAuthoritySet,
+            Self::WorktreeRegistered(_) => OutputRoute::WorktreeRegistered,
+            Self::WorktreeIndexRefreshed(_) => OutputRoute::WorktreeIndexRefreshed,
             Self::PartialApplied(_) => OutputRoute::PartialApplied,
             Self::MetaOrchestrateRequestUnimplemented(_) => {
                 OutputRoute::MetaOrchestrateRequestUnimplemented
@@ -724,6 +849,10 @@ impl Output {
             Self::LaneRegistered(_) => short_header::OUTPUT_LANE_REGISTERED,
             Self::LaneRetired(_) => short_header::OUTPUT_LANE_RETIRED,
             Self::LaneAuthoritySet(_) => short_header::OUTPUT_LANE_AUTHORITY_SET,
+            Self::WorktreeRegistered(_) => short_header::OUTPUT_WORKTREE_REGISTERED,
+            Self::WorktreeIndexRefreshed(_) => {
+                short_header::OUTPUT_WORKTREE_INDEX_REFRESHED
+            }
             Self::PartialApplied(_) => short_header::OUTPUT_PARTIAL_APPLIED,
             Self::MetaOrchestrateRequestUnimplemented(_) => {
                 short_header::OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED
@@ -745,6 +874,12 @@ impl Output {
             short_header::OUTPUT_LANE_REGISTERED => Ok(OutputRoute::LaneRegistered),
             short_header::OUTPUT_LANE_RETIRED => Ok(OutputRoute::LaneRetired),
             short_header::OUTPUT_LANE_AUTHORITY_SET => Ok(OutputRoute::LaneAuthoritySet),
+            short_header::OUTPUT_WORKTREE_REGISTERED => {
+                Ok(OutputRoute::WorktreeRegistered)
+            }
+            short_header::OUTPUT_WORKTREE_INDEX_REFRESHED => {
+                Ok(OutputRoute::WorktreeIndexRefreshed)
+            }
             short_header::OUTPUT_PARTIAL_APPLIED => Ok(OutputRoute::PartialApplied),
             short_header::OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED => {
                 Ok(OutputRoute::MetaOrchestrateRequestUnimplemented)
@@ -805,6 +940,8 @@ impl signal_frame::SignalOperationHeads for Input {
         "Refresh",
         "Register",
         "SetAuthority",
+        "RegisterWorktree",
+        "RefreshWorktreeIndex",
     ];
 }
 #[rustfmt::skip]

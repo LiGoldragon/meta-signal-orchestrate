@@ -35,3 +35,13 @@ schema-next = { git = "https://github.com/LiGoldragon/schema-next.git", branch =
 unsafe_code = "forbid"
 unused      = { level = "warn", priority = -1 }
 dead_code   = "warn"
+
+# eh5a PROTOTYPE SCAFFOLD — remove once operator lands
+# signal-orchestrate-worktree-registry on signal-orchestrate main. Redirects
+# the signal-orchestrate git source to the local worktree-registry worktree so
+# meta-signal-orchestrate can consume the not-yet-merged Worktree contract
+# (designer branch signal-orchestrate-worktree-registry, tip e04d0d28). The
+# orchestrate daemon mirrors this redirect so exactly one signal-orchestrate
+# version resolves across the whole graph.
+[patch."https://github.com/LiGoldragon/signal-orchestrate.git"]
+signal-orchestrate = { path = "/home/li/wt/github.com/LiGoldragon/signal-orchestrate/worktree-registry" }
