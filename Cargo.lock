@@ -405,6 +405,7 @@ dependencies = [
 [[package]]
 name = "signal-orchestrate"
 version = "0.3.0"
+source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?branch=main#a785cc77d45c56ab5b5f2803e14f0f17c448bada"
 dependencies = [
  "nota-next",
  "rkyv",
