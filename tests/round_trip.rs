@@ -6,7 +6,7 @@ use meta_signal_orchestrate::{
     MetaOrchestrateRequestUnimplemented, MetaOrchestrateUnimplementedReason, PartialApplied,
     RefreshRepositoryIndexOrder, RepositoryIndexRefreshed, RetireRoleOrder, Retirement, Role,
     RoleCreated, RoleCreationRejected, RoleCreationRejectionReason, RoleIdentifier, RoleRetired,
-    RoleToken, ScopeReason, WirePath,
+    RoleToken, ScopeReason, WirePath, WorktreeIndexRefreshed,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -138,9 +138,8 @@ fn meta_orchestrate_replies_round_trip() {
     });
     assert_eq!(round_trip_reply(rejected.clone()), rejected);
 
-    let refreshed = MetaOrchestrateReply::RepositoryIndexRefreshed(RepositoryIndexRefreshed {
-        repositories: 7,
-    });
+    let refreshed =
+        MetaOrchestrateReply::RepositoryIndexRefreshed(RepositoryIndexRefreshed::new(7));
     assert_eq!(round_trip_reply(refreshed.clone()), refreshed);
 
     let registered = MetaOrchestrateReply::LaneRegistered(LaneRegistered {
@@ -197,6 +196,37 @@ fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
     assert_eq!(
         decoded.payloads().head().operation_kind(),
         MetaOperationKind::Refresh
+    );
+}
+
+#[test]
+#[cfg(feature = "nota-text")]
+fn index_refresh_replies_round_trip_through_schema_derived_nota() {
+    use meta_signal_orchestrate::schema::lib as generated;
+    use nota_next::{NotaEncode, NotaSource};
+
+    let repository_refreshed = RepositoryIndexRefreshed::new(7);
+    let repository_text = repository_refreshed.to_nota();
+    let repository_decoded = NotaSource::new(&repository_text)
+        .parse::<RepositoryIndexRefreshed>()
+        .expect("decode repository refresh");
+    assert_eq!(repository_decoded, repository_refreshed);
+    assert_eq!(repository_decoded.repositories(), 7);
+    assert_eq!(
+        repository_text,
+        generated::RepositoryIndexRefreshed::new(7).to_nota()
+    );
+
+    let worktree_refreshed = WorktreeIndexRefreshed::new(11);
+    let worktree_text = worktree_refreshed.to_nota();
+    let worktree_decoded = NotaSource::new(&worktree_text)
+        .parse::<WorktreeIndexRefreshed>()
+        .expect("decode worktree refresh");
+    assert_eq!(worktree_decoded, worktree_refreshed);
+    assert_eq!(worktree_decoded.worktrees(), 11);
+    assert_eq!(
+        worktree_text,
+        generated::WorktreeIndexRefreshed::new(11).to_nota()
     );
 }
 

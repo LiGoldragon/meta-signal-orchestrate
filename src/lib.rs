@@ -5,12 +5,12 @@
 //! `signal-orchestrate`. This crate carries meta-signal
 //! orders that mutate the orchestration substrate itself.
 
-use nota_next::{Block, Delimiter, NotaBlock, NotaDecode, NotaDecodeError, NotaEncode};
+use nota_next::{NotaDecode, NotaEncode};
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
 pub use signal_orchestrate::{
     ApplicationFailure, ApplicationFailureReason, ApplicationSuccess, BranchName,
-    DownstreamComponent, HarnessKind, LaneAuthority, LaneIdentifier, LaneRegistration, LaneName,
+    DownstreamComponent, HarnessKind, LaneAuthority, LaneIdentifier, LaneName, LaneRegistration,
     PartialApplied, PurposeText, PushedState, RepositoryName, Role, RoleIdentifier, RoleName,
     RoleToken, ScopeReason, TimestampNanos, WirePath, Worktree, WorktreeStatus,
 };
@@ -123,27 +123,27 @@ pub enum RoleCreationRejectionReason {
     ReportLaneAlreadyExists,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct RepositoryIndexRefreshed {
-    pub repositories: u32,
-}
+#[derive(
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+)]
+pub struct RepositoryIndexRefreshed(u32);
 
-impl NotaDecode for RepositoryIndexRefreshed {
-    fn from_nota_block(block: &Block) -> Result<Self, NotaDecodeError> {
-        let children = NotaBlock::new(block).expect_children(
-            Delimiter::Parenthesis,
-            "RepositoryIndexRefreshed",
-            1,
-        )?;
-        let repositories = u32::try_from(u64::from_nota_block(&children[0])?)
-            .map_err(|error| NotaDecodeError::Parse(error.to_string()))?;
-        Ok(Self { repositories })
+impl RepositoryIndexRefreshed {
+    pub fn new(repositories: u32) -> Self {
+        Self(repositories)
     }
-}
 
-impl NotaEncode for RepositoryIndexRefreshed {
-    fn to_nota(&self) -> String {
-        Delimiter::Parenthesis.wrap([u64::from(self.repositories).to_nota()])
+    pub fn repositories(&self) -> u32 {
+        self.0
     }
 }
 
@@ -157,24 +157,27 @@ pub struct WorktreeRegistered {
 
 /// Ack for [`RefreshWorktreeIndexOrder`] — count of worktrees the scan
 /// found, mirroring [`RepositoryIndexRefreshed`].
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct WorktreeIndexRefreshed {
-    pub worktrees: u32,
-}
+#[derive(
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+)]
+pub struct WorktreeIndexRefreshed(u32);
 
-impl NotaDecode for WorktreeIndexRefreshed {
-    fn from_nota_block(block: &Block) -> Result<Self, NotaDecodeError> {
-        let children =
-            NotaBlock::new(block).expect_children(Delimiter::Parenthesis, "WorktreeIndexRefreshed", 1)?;
-        let worktrees = u32::try_from(u64::from_nota_block(&children[0])?)
-            .map_err(|error| NotaDecodeError::Parse(error.to_string()))?;
-        Ok(Self { worktrees })
+impl WorktreeIndexRefreshed {
+    pub fn new(worktrees: u32) -> Self {
+        Self(worktrees)
     }
-}
 
-impl NotaEncode for WorktreeIndexRefreshed {
-    fn to_nota(&self) -> String {
-        Delimiter::Parenthesis.wrap([u64::from(self.worktrees).to_nota()])
+    pub fn worktrees(&self) -> u32 {
+        self.0
     }
 }
 
