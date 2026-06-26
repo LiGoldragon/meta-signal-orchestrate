@@ -5,6 +5,9 @@
 //! `signal-orchestrate`. This crate carries meta-signal
 //! orders that mutate the orchestration substrate itself.
 
+#[allow(unused_extern_crates)]
+extern crate nota_next as nota;
+
 use nota_next::{Block, Delimiter, NotaBlock, NotaDecode, NotaDecodeError, NotaEncode};
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
