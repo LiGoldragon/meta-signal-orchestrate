@@ -3,6 +3,12 @@
 *MetaSignal contract for privileged `orchestrate` role and
 repository administration.*
 
+## 0.5 · Direction
+
+`meta-signal-orchestrate` is the meta authority contract for mutating orchestration topology. It exists to make the authority split code-enforced now and filesystem-permission-enforced later: callers can compile against the ordinary `signal-orchestrate` contract without being able to express role creation or repository-index refresh orders. Partial-failure semantics are commit-first-success-and-record-divergence; the `PartialApplied` reply names that outcome on the wire.
+
+This crate carries only typed wire vocabulary, NOTA codecs, and round-trip witnesses — no Kameo, Tokio, sema-engine, redb, filesystem mutation, GitHub, or ghq logic.
+
 ## 0 · TL;DR
 
 `meta-signal-orchestrate` is the meta-signal Signal surface for
