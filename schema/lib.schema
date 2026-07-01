@@ -13,7 +13,8 @@
  (Register LaneRegistrationRequest)
  (SetAuthority LaneAuthorityChange)
  (RegisterWorktree RegisterWorktree)
- (RefreshWorktreeIndex RefreshWorktreeIndexOrder)]
+ (RefreshWorktreeIndex RefreshWorktreeIndexOrder)
+ (ArchiveWorktree ArchiveWorktreeOrder)]
 [(RoleCreated RoleCreated)
  (RoleRetired RoleRetired)
  (RoleCreationRejected RoleCreationRejected)
@@ -23,6 +24,7 @@
  (LaneAuthoritySet LaneAuthoritySet)
  (WorktreeRegistered WorktreeRegistered)
  (WorktreeIndexRefreshed WorktreeIndexRefreshed)
+ (WorktreeArchived WorktreeArchived)
  (PartialApplied PartialApplied)
  (MetaOrchestrateRequestUnimplemented MetaOrchestrateRequestUnimplemented)]
 {
@@ -34,6 +36,7 @@
   LaneAuthorityChange { lane.LaneIdentifier authority.LaneAuthority }
   RegisterWorktree { Worktree }
   RefreshWorktreeIndexOrder {}
+  ArchiveWorktreeOrder { path.WirePath }
 
   RoleCreated { role.RoleIdentifier harness.HarnessKind report_repository_path.WirePath report_lane_path.WirePath }
   RoleRetired { role.RoleIdentifier }
@@ -45,7 +48,8 @@
   LaneAuthoritySet { lane.LaneIdentifier authority.LaneAuthority }
   WorktreeRegistered { Worktree }
   WorktreeIndexRefreshed { worktrees.Integer }
-  MetaOperationKind [Create Retire Refresh Register SetAuthority RegisterWorktree RefreshWorktreeIndex]
+  WorktreeArchived { Worktree }
+  MetaOperationKind [Create Retire Refresh Register SetAuthority RegisterWorktree RefreshWorktreeIndex ArchiveWorktree]
   MetaOrchestrateUnimplementedReason [NotBuiltYet DependencyNotReady]
   MetaOrchestrateRequestUnimplemented { operation.MetaOperationKind reason.MetaOrchestrateUnimplementedReason }
 }
