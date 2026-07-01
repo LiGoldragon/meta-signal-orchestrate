@@ -147,6 +147,25 @@ impl RepositoryIndexRefreshed {
     }
 }
 
+/// Transition a single registered worktree's status to [`WorktreeStatus::Archived`].
+/// The daemon looks up the worktree by `path`, updates its status, and
+/// reprojects `worktrees.nota`. Reply: [`WorktreeArchived`].
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct ArchiveWorktreeOrder {
+    pub path: WirePath,
+}
+
+/// Ack for [`ArchiveWorktreeOrder`] — echoes the worktree after the status
+/// transition to `Archived`.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct WorktreeArchived {
+    pub worktree: Worktree,
+}
+
 /// Ack for [`RegisterWorktree`] — echoes the registered worktree.
 #[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
@@ -237,6 +256,7 @@ signal_channel! {
         operation SetAuthority(LaneAuthorityChange),
         operation RegisterWorktree(RegisterWorktree),
         operation RefreshWorktreeIndex(RefreshWorktreeIndexOrder),
+        operation ArchiveWorktree(ArchiveWorktreeOrder),
     }
     reply MetaOrchestrateReply {
         RoleCreated(RoleCreated),
@@ -248,6 +268,7 @@ signal_channel! {
         LaneAuthoritySet(LaneAuthoritySet),
         WorktreeRegistered(WorktreeRegistered),
         WorktreeIndexRefreshed(WorktreeIndexRefreshed),
+        WorktreeArchived(WorktreeArchived),
         PartialApplied(PartialApplied),
         MetaOrchestrateRequestUnimplemented(MetaOrchestrateRequestUnimplemented),
     }
@@ -309,5 +330,11 @@ impl From<RegisterWorktree> for MetaOrchestrateRequest {
 impl From<RefreshWorktreeIndexOrder> for MetaOrchestrateRequest {
     fn from(payload: RefreshWorktreeIndexOrder) -> Self {
         Self::RefreshWorktreeIndex(payload)
+    }
+}
+
+impl From<ArchiveWorktreeOrder> for MetaOrchestrateRequest {
+    fn from(payload: ArchiveWorktreeOrder) -> Self {
+        Self::ArchiveWorktree(payload)
     }
 }
