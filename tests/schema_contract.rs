@@ -1,4 +1,4 @@
-use schema_next::{
+use schema::{
     EnumDeclaration, ImportResolver, Root, SchemaEngine, SchemaIdentity, SchemaSourceArtifact,
 };
 use std::path::PathBuf;
@@ -56,8 +56,8 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
         create
             .payload
             .as_ref()
-            .and_then(schema_next::TypeReference::plain_name)
-            .map(schema_next::Name::as_str),
+            .and_then(schema::TypeReference::plain_name)
+            .map(schema::Name::as_str),
         Some("CreateRoleOrder")
     );
 

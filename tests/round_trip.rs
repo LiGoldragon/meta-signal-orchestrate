@@ -181,7 +181,7 @@ fn meta_orchestrate_replies_round_trip() {
 #[test]
 #[cfg(feature = "nota-text")]
 fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
-    use nota_next::{NotaEncode, NotaSource};
+    use nota::{NotaEncode, NotaSource};
 
     let operation = MetaOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
     let text = operation.into_request().to_nota();
@@ -203,7 +203,7 @@ fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
 #[cfg(feature = "nota-text")]
 fn index_refresh_replies_round_trip_through_schema_derived_nota() {
     use meta_signal_orchestrate::schema::lib as generated;
-    use nota_next::{NotaEncode, NotaSource};
+    use nota::{NotaEncode, NotaSource};
 
     let repository_refreshed = RepositoryIndexRefreshed::new(7);
     let repository_text = repository_refreshed.to_nota();
