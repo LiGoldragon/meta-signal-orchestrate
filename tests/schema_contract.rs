@@ -46,8 +46,8 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
     let input = root_enum(schema.input());
     let output = root_enum(schema.output());
 
-    assert_eq!(input.variants.len(), 7);
-    assert_eq!(output.variants.len(), 11);
+    assert_eq!(input.variants.len(), 8);
+    assert_eq!(output.variants.len(), 12);
     assert_eq!(schema.resolved_imports().len(), 9);
 
     let create = &input.variants[0];
