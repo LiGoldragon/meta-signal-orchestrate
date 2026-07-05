@@ -103,6 +103,14 @@ pub struct LaneUnregistrationRequest {
 #[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
 )]
+pub struct SessionClearRequest {
+    pub session: SessionIdentifier,
+    pub details: LaneDetails,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct LaneAuthorityChange {
     pub lane: LaneIdentifier,
     pub authority: LaneAuthority,
@@ -276,6 +284,16 @@ pub struct LaneUnregistered {
 #[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
 )]
+pub struct SessionCleared {
+    pub session: SessionIdentifier,
+    pub cleared_lanes: u32,
+    pub ended_at: TimestampNanos,
+    pub details: LaneDetails,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 pub struct LaneRetired {
     pub lane: LaneIdentifier,
 }
@@ -320,6 +338,7 @@ signal_channel! {
         operation Refresh(RefreshRepositoryIndexOrder),
         operation Register(LaneRegistrationRequest),
         operation Unregister(LaneUnregistrationRequest),
+        operation ClearSession(SessionClearRequest),
         operation SetAuthority(LaneAuthorityChange),
         operation RegisterWorktree(RegisterWorktree),
         operation RefreshWorktreeIndex(RefreshWorktreeIndexOrder),
@@ -333,6 +352,7 @@ signal_channel! {
         LaneRegistered(LaneRegistered),
         LaneAlreadyRegistered(LaneAlreadyRegistered),
         LaneUnregistered(LaneUnregistered),
+        SessionCleared(SessionCleared),
         LaneRetired(LaneRetired),
         LaneAuthoritySet(LaneAuthoritySet),
         WorktreeRegistered(WorktreeRegistered),

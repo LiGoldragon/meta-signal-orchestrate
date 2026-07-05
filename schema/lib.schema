@@ -19,6 +19,7 @@
  (Refresh RefreshRepositoryIndexOrder)
  (Register LaneRegistrationRequest)
  (Unregister LaneUnregistrationRequest)
+ (ClearSession SessionClearRequest)
  (SetAuthority LaneAuthorityChange)
  (RegisterWorktree RegisterWorktree)
  (RefreshWorktreeIndex RefreshWorktreeIndexOrder)
@@ -30,6 +31,7 @@
  (LaneRegistered LaneRegistered)
  (LaneAlreadyRegistered LaneAlreadyRegistered)
  (LaneUnregistered LaneUnregistered)
+ (SessionCleared SessionCleared)
  (LaneRetired LaneRetired)
  (LaneAuthoritySet LaneAuthoritySet)
  (WorktreeRegistered WorktreeRegistered)
@@ -45,6 +47,7 @@
   LaneRegistrationRequest { assignment.LaneAssignment mode.LaneRegistrationMode }
   LaneRegistrationMode [Fresh Recovery]
   LaneUnregistrationRequest { session.SessionIdentifier lane.LaneIdentifier details.LaneDetails }
+  SessionClearRequest { session.SessionIdentifier details.LaneDetails }
   LaneAuthorityChange { lane.LaneIdentifier authority.LaneAuthority }
   RegisterWorktree { Worktree }
   RefreshWorktreeIndexOrder {}
@@ -59,12 +62,13 @@
   LaneAlreadyRegisteredResolution [FreshConflict RecoveryInherited]
   LaneAlreadyRegistered { requested.LaneRegistrationRequest active.LaneProjection resolution.LaneAlreadyRegisteredResolution }
   LaneUnregistered { session.SessionIdentifier lane.LaneIdentifier ended_at.TimestampNanos details.LaneDetails }
+  SessionCleared { session.SessionIdentifier cleared_lanes.Integer ended_at.TimestampNanos details.LaneDetails }
   LaneRetired { lane.LaneIdentifier }
   LaneAuthoritySet { lane.LaneIdentifier authority.LaneAuthority }
   WorktreeRegistered { Worktree }
   WorktreeIndexRefreshed { worktrees.Integer }
   WorktreeArchived { Worktree }
-  MetaOperationKind [Create Retire Refresh Register Unregister SetAuthority RegisterWorktree RefreshWorktreeIndex ArchiveWorktree]
+  MetaOperationKind [Create Retire Refresh Register Unregister ClearSession SetAuthority RegisterWorktree RefreshWorktreeIndex ArchiveWorktree]
   MetaOrchestrateUnimplementedReason [NotBuiltYet DependencyNotReady]
   MetaOrchestrateRequestUnimplemented { operation.MetaOperationKind reason.MetaOrchestrateUnimplementedReason }
 }

@@ -133,6 +133,17 @@ pub struct LaneUnregistrationRequest {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SessionClearRequest {
+    pub session: SessionIdentifier,
+    pub details: LaneDetails,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneAuthorityChange {
     pub lane: LaneIdentifier,
     pub authority: LaneAuthority,
@@ -282,6 +293,19 @@ pub struct LaneUnregistered {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SessionCleared {
+    pub session: SessionIdentifier,
+    pub cleared_lanes: Integer,
+    pub ended_at: TimestampNanos,
+    pub details: LaneDetails,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneRetired(LaneIdentifier);
 
 #[rustfmt::skip]
@@ -340,6 +364,7 @@ pub enum MetaOperationKind {
     Refresh,
     Register,
     Unregister,
+    ClearSession,
     SetAuthority,
     RegisterWorktree,
     RefreshWorktreeIndex,
@@ -389,6 +414,7 @@ pub enum Input {
     Refresh(RefreshRepositoryIndexOrder),
     Register(LaneRegistrationRequest),
     Unregister(LaneUnregistrationRequest),
+    ClearSession(SessionClearRequest),
     SetAuthority(LaneAuthorityChange),
     RegisterWorktree(RegisterWorktree),
     RefreshWorktreeIndex(RefreshWorktreeIndexOrder),
@@ -409,6 +435,7 @@ pub enum Output {
     LaneRegistered(LaneRegistered),
     LaneAlreadyRegistered(LaneAlreadyRegistered),
     LaneUnregistered(LaneUnregistered),
+    SessionCleared(SessionCleared),
     LaneRetired(LaneRetired),
     LaneAuthoritySet(LaneAuthoritySet),
     WorktreeRegistered(WorktreeRegistered),
@@ -635,6 +662,9 @@ impl Input {
     pub fn unregister(payload: LaneUnregistrationRequest) -> Self {
         Self::Unregister(payload)
     }
+    pub fn clear_session(payload: SessionClearRequest) -> Self {
+        Self::ClearSession(payload)
+    }
     pub fn set_authority(payload: LaneAuthorityChange) -> Self {
         Self::SetAuthority(payload)
     }
@@ -671,6 +701,9 @@ impl Output {
     }
     pub fn lane_unregistered(payload: LaneUnregistered) -> Self {
         Self::LaneUnregistered(payload)
+    }
+    pub fn session_cleared(payload: SessionCleared) -> Self {
+        Self::SessionCleared(payload)
     }
     pub fn lane_retired(payload: LaneIdentifier) -> Self {
         Self::LaneRetired(LaneRetired::new(payload))
@@ -743,6 +776,13 @@ impl From<LaneRegistrationRequest> for Input {
 impl From<LaneUnregistrationRequest> for Input {
     fn from(payload: LaneUnregistrationRequest) -> Self {
         Self::Unregister(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<SessionClearRequest> for Input {
+    fn from(payload: SessionClearRequest) -> Self {
+        Self::ClearSession(payload)
     }
 }
 
@@ -820,6 +860,13 @@ impl From<LaneAlreadyRegistered> for Output {
 impl From<LaneUnregistered> for Output {
     fn from(payload: LaneUnregistered) -> Self {
         Self::LaneUnregistered(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<SessionCleared> for Output {
+    fn from(payload: SessionCleared) -> Self {
+        Self::SessionCleared(payload)
     }
 }
 
@@ -911,10 +958,11 @@ pub mod short_header {
     pub const INPUT_REFRESH: u64 = 0x0002000000000000;
     pub const INPUT_REGISTER: u64 = 0x0003000000000000;
     pub const INPUT_UNREGISTER: u64 = 0x0004000000000000;
-    pub const INPUT_SET_AUTHORITY: u64 = 0x0005000000000000;
-    pub const INPUT_REGISTER_WORKTREE: u64 = 0x0006000000000000;
-    pub const INPUT_REFRESH_WORKTREE_INDEX: u64 = 0x0007000000000000;
-    pub const INPUT_ARCHIVE_WORKTREE: u64 = 0x0008000000000000;
+    pub const INPUT_CLEAR_SESSION: u64 = 0x0005000000000000;
+    pub const INPUT_SET_AUTHORITY: u64 = 0x0006000000000000;
+    pub const INPUT_REGISTER_WORKTREE: u64 = 0x0007000000000000;
+    pub const INPUT_REFRESH_WORKTREE_INDEX: u64 = 0x0008000000000000;
+    pub const INPUT_ARCHIVE_WORKTREE: u64 = 0x0009000000000000;
     pub const OUTPUT_ROLE_CREATED: u64 = 0x0100000000000000;
     pub const OUTPUT_ROLE_RETIRED: u64 = 0x0101000000000000;
     pub const OUTPUT_ROLE_CREATION_REJECTED: u64 = 0x0102000000000000;
@@ -922,13 +970,14 @@ pub mod short_header {
     pub const OUTPUT_LANE_REGISTERED: u64 = 0x0104000000000000;
     pub const OUTPUT_LANE_ALREADY_REGISTERED: u64 = 0x0105000000000000;
     pub const OUTPUT_LANE_UNREGISTERED: u64 = 0x0106000000000000;
-    pub const OUTPUT_LANE_RETIRED: u64 = 0x0107000000000000;
-    pub const OUTPUT_LANE_AUTHORITY_SET: u64 = 0x0108000000000000;
-    pub const OUTPUT_WORKTREE_REGISTERED: u64 = 0x0109000000000000;
-    pub const OUTPUT_WORKTREE_INDEX_REFRESHED: u64 = 0x010A000000000000;
-    pub const OUTPUT_WORKTREE_ARCHIVED: u64 = 0x010B000000000000;
-    pub const OUTPUT_PARTIAL_APPLIED: u64 = 0x010C000000000000;
-    pub const OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED: u64 = 0x010D000000000000;
+    pub const OUTPUT_SESSION_CLEARED: u64 = 0x0107000000000000;
+    pub const OUTPUT_LANE_RETIRED: u64 = 0x0108000000000000;
+    pub const OUTPUT_LANE_AUTHORITY_SET: u64 = 0x0109000000000000;
+    pub const OUTPUT_WORKTREE_REGISTERED: u64 = 0x010A000000000000;
+    pub const OUTPUT_WORKTREE_INDEX_REFRESHED: u64 = 0x010B000000000000;
+    pub const OUTPUT_WORKTREE_ARCHIVED: u64 = 0x010C000000000000;
+    pub const OUTPUT_PARTIAL_APPLIED: u64 = 0x010D000000000000;
+    pub const OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED: u64 = 0x010E000000000000;
 }
 
 #[rustfmt::skip]
@@ -987,6 +1036,7 @@ pub enum InputRoute {
     Refresh,
     Register,
     Unregister,
+    ClearSession,
     SetAuthority,
     RegisterWorktree,
     RefreshWorktreeIndex,
@@ -1016,6 +1066,7 @@ pub enum OutputRoute {
     LaneRegistered,
     LaneAlreadyRegistered,
     LaneUnregistered,
+    SessionCleared,
     LaneRetired,
     LaneAuthoritySet,
     WorktreeRegistered,
@@ -1034,6 +1085,7 @@ impl Input {
             Self::Refresh(_) => InputRoute::Refresh,
             Self::Register(_) => InputRoute::Register,
             Self::Unregister(_) => InputRoute::Unregister,
+            Self::ClearSession(_) => InputRoute::ClearSession,
             Self::SetAuthority(_) => InputRoute::SetAuthority,
             Self::RegisterWorktree(_) => InputRoute::RegisterWorktree,
             Self::RefreshWorktreeIndex(_) => InputRoute::RefreshWorktreeIndex,
@@ -1047,6 +1099,7 @@ impl Input {
             Self::Refresh(_) => short_header::INPUT_REFRESH,
             Self::Register(_) => short_header::INPUT_REGISTER,
             Self::Unregister(_) => short_header::INPUT_UNREGISTER,
+            Self::ClearSession(_) => short_header::INPUT_CLEAR_SESSION,
             Self::SetAuthority(_) => short_header::INPUT_SET_AUTHORITY,
             Self::RegisterWorktree(_) => short_header::INPUT_REGISTER_WORKTREE,
             Self::RefreshWorktreeIndex(_) => short_header::INPUT_REFRESH_WORKTREE_INDEX,
@@ -1060,6 +1113,7 @@ impl Input {
             short_header::INPUT_REFRESH => Ok(InputRoute::Refresh),
             short_header::INPUT_REGISTER => Ok(InputRoute::Register),
             short_header::INPUT_UNREGISTER => Ok(InputRoute::Unregister),
+            short_header::INPUT_CLEAR_SESSION => Ok(InputRoute::ClearSession),
             short_header::INPUT_SET_AUTHORITY => Ok(InputRoute::SetAuthority),
             short_header::INPUT_REGISTER_WORKTREE => Ok(InputRoute::RegisterWorktree),
             short_header::INPUT_REFRESH_WORKTREE_INDEX => {
@@ -1123,6 +1177,7 @@ impl Output {
             Self::LaneRegistered(_) => OutputRoute::LaneRegistered,
             Self::LaneAlreadyRegistered(_) => OutputRoute::LaneAlreadyRegistered,
             Self::LaneUnregistered(_) => OutputRoute::LaneUnregistered,
+            Self::SessionCleared(_) => OutputRoute::SessionCleared,
             Self::LaneRetired(_) => OutputRoute::LaneRetired,
             Self::LaneAuthoritySet(_) => OutputRoute::LaneAuthoritySet,
             Self::WorktreeRegistered(_) => OutputRoute::WorktreeRegistered,
@@ -1147,6 +1202,7 @@ impl Output {
                 short_header::OUTPUT_LANE_ALREADY_REGISTERED
             }
             Self::LaneUnregistered(_) => short_header::OUTPUT_LANE_UNREGISTERED,
+            Self::SessionCleared(_) => short_header::OUTPUT_SESSION_CLEARED,
             Self::LaneRetired(_) => short_header::OUTPUT_LANE_RETIRED,
             Self::LaneAuthoritySet(_) => short_header::OUTPUT_LANE_AUTHORITY_SET,
             Self::WorktreeRegistered(_) => short_header::OUTPUT_WORKTREE_REGISTERED,
@@ -1177,6 +1233,7 @@ impl Output {
                 Ok(OutputRoute::LaneAlreadyRegistered)
             }
             short_header::OUTPUT_LANE_UNREGISTERED => Ok(OutputRoute::LaneUnregistered),
+            short_header::OUTPUT_SESSION_CLEARED => Ok(OutputRoute::SessionCleared),
             short_header::OUTPUT_LANE_RETIRED => Ok(OutputRoute::LaneRetired),
             short_header::OUTPUT_LANE_AUTHORITY_SET => Ok(OutputRoute::LaneAuthoritySet),
             short_header::OUTPUT_WORKTREE_REGISTERED => {
@@ -1246,6 +1303,7 @@ impl signal_frame::SignalOperationHeads for Input {
         "Refresh",
         "Register",
         "Unregister",
+        "ClearSession",
         "SetAuthority",
         "RegisterWorktree",
         "RefreshWorktreeIndex",
