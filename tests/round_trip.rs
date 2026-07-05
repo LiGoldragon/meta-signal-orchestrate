@@ -1,12 +1,16 @@
 use meta_signal_orchestrate::{
     ApplicationFailure, ApplicationFailureReason, ApplicationSuccess, CreateRoleOrder,
-    DownstreamComponent, Frame, FrameBody, HarnessKind, LaneAuthority, LaneAuthorityChange,
-    LaneAuthoritySet, LaneIdentifier, LaneRegistered, LaneRegistration, LaneRegistrationRequest,
-    LaneRetired, MetaOperationKind, MetaOrchestrateReply, MetaOrchestrateRequest,
-    MetaOrchestrateRequestUnimplemented, MetaOrchestrateUnimplementedReason, PartialApplied,
-    RefreshRepositoryIndexOrder, RepositoryIndexRefreshed, RetireRoleOrder, Retirement, Role,
-    RoleCreated, RoleCreationRejected, RoleCreationRejectionReason, RoleIdentifier, RoleRetired,
-    RoleToken, ScopeReason, WirePath, WorktreeIndexRefreshed,
+    DownstreamComponent, DurationNanos, Frame, FrameBody, HarnessKind, LaneAlreadyRegistered,
+    LaneAlreadyRegisteredResolution, LaneAssignment, LaneAuthority, LaneAuthorityChange,
+    LaneAuthoritySet, LaneDetails, LaneIdentifier, LaneOwner, LaneProjection, LaneRegistered,
+    LaneRegistration, LaneRegistrationMode, LaneRegistrationRequest, LaneResourceClaim,
+    LaneRetired, LaneStatus, LaneUnregistered, LaneUnregistrationRequest, MetaOperationKind,
+    MetaOrchestrateReply, MetaOrchestrateRequest, MetaOrchestrateRequestUnimplemented,
+    MetaOrchestrateUnimplementedReason, PartialApplied, RefreshRepositoryIndexOrder,
+    RepositoryIndexRefreshed, RetireRoleOrder, Retirement, Role, RoleCreated, RoleCreationRejected,
+    RoleCreationRejectionReason, RoleIdentifier, RoleRetired, RoleToken, ScopeReason,
+    ScopeReference, SessionClearRequest, SessionCleared, SessionIdentifier, TimestampNanos,
+    WirePath, WorktreeIndexRefreshed,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -30,6 +34,14 @@ fn lane() -> LaneIdentifier {
     LaneIdentifier::from_wire_token("persona-signal-designer").expect("lane")
 }
 
+fn session() -> SessionIdentifier {
+    SessionIdentifier::from_camel_case_name("SessionLaneProtocolContracts").expect("session")
+}
+
+fn lane_details() -> LaneDetails {
+    LaneDetails::from_text("session lane protocol contract worker").expect("lane details")
+}
+
 fn role_vector() -> Role {
     Role::try_new(vec![
         RoleToken::from_text("PersonaSignal").expect("role token"),
@@ -38,11 +50,44 @@ fn role_vector() -> Role {
     .expect("role vector")
 }
 
+fn lane_assignment() -> LaneAssignment {
+    LaneAssignment {
+        session: session(),
+        lane: lane(),
+        owner: LaneOwner {
+            role: role_vector(),
+            authority: LaneAuthority::Structural,
+        },
+        details: lane_details(),
+    }
+}
+
+fn lane_registration_request(mode: LaneRegistrationMode) -> LaneRegistrationRequest {
+    LaneRegistrationRequest {
+        assignment: lane_assignment(),
+        mode,
+    }
+}
+
 fn lane_registration() -> LaneRegistration {
     LaneRegistration {
-        lane: lane(),
-        role: role_vector(),
-        authority: LaneAuthority::Structural,
+        assignment: lane_assignment(),
+        registered_at: TimestampNanos::new(1_730_000_010_000_000_000),
+        status: LaneStatus::Active,
+    }
+}
+
+fn lane_projection() -> LaneProjection {
+    LaneProjection {
+        registration: lane_registration(),
+        resource_claims: vec![LaneResourceClaim {
+            scope: ScopeReference::Path(repository_path()),
+            reason: ScopeReason::from_text("contract claim held by active lane")
+                .expect("claim reason"),
+            claimed_at: TimestampNanos::new(1_730_000_011_000_000_000),
+        }],
+        observed_at: TimestampNanos::new(1_730_000_012_000_000_000),
+        age: DurationNanos::new(2_000_000_000),
     }
 }
 
@@ -103,14 +148,25 @@ fn meta_orchestrate_requests_round_trip() {
     let refresh = MetaOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
     assert_eq!(round_trip_request(refresh.clone()), refresh);
 
-    let register = MetaOrchestrateRequest::Register(LaneRegistrationRequest {
-        role: role_vector(),
-        authority: LaneAuthority::Structural,
-    });
+    let register =
+        MetaOrchestrateRequest::Register(lane_registration_request(LaneRegistrationMode::Fresh));
     assert_eq!(round_trip_request(register.clone()), register);
+
+    let unregister = MetaOrchestrateRequest::Unregister(LaneUnregistrationRequest {
+        session: session(),
+        lane: lane(),
+        details: lane_details(),
+    });
+    assert_eq!(round_trip_request(unregister.clone()), unregister);
 
     let retire_lane = MetaOrchestrateRequest::Retire(Retirement::Lane(lane()));
     assert_eq!(round_trip_request(retire_lane.clone()), retire_lane);
+
+    let clear_session = MetaOrchestrateRequest::ClearSession(SessionClearRequest {
+        session: session(),
+        details: lane_details(),
+    });
+    assert_eq!(round_trip_request(clear_session.clone()), clear_session);
 
     let set_authority = MetaOrchestrateRequest::SetAuthority(LaneAuthorityChange {
         lane: lane(),
@@ -146,6 +202,47 @@ fn meta_orchestrate_replies_round_trip() {
         registration: lane_registration(),
     });
     assert_eq!(round_trip_reply(registered.clone()), registered);
+
+    let already_registered_fresh =
+        MetaOrchestrateReply::LaneAlreadyRegistered(LaneAlreadyRegistered {
+            requested: lane_registration_request(LaneRegistrationMode::Fresh),
+            active: lane_projection(),
+            resolution: LaneAlreadyRegisteredResolution::FreshConflict,
+        });
+    assert_eq!(
+        round_trip_reply(already_registered_fresh.clone()),
+        already_registered_fresh
+    );
+
+    let already_registered_recovery =
+        MetaOrchestrateReply::LaneAlreadyRegistered(LaneAlreadyRegistered {
+            requested: lane_registration_request(LaneRegistrationMode::Recovery),
+            active: lane_projection(),
+            resolution: LaneAlreadyRegisteredResolution::RecoveryInherited,
+        });
+    assert_eq!(
+        round_trip_reply(already_registered_recovery.clone()),
+        already_registered_recovery
+    );
+
+    let lane_unregistered = MetaOrchestrateReply::LaneUnregistered(LaneUnregistered {
+        session: session(),
+        lane: lane(),
+        ended_at: TimestampNanos::new(1_730_000_013_000_000_000),
+        details: lane_details(),
+    });
+    assert_eq!(
+        round_trip_reply(lane_unregistered.clone()),
+        lane_unregistered
+    );
+
+    let session_cleared = MetaOrchestrateReply::SessionCleared(SessionCleared {
+        session: session(),
+        cleared_lanes: 3,
+        ended_at: TimestampNanos::new(1_730_000_014_000_000_000),
+        details: lane_details(),
+    });
+    assert_eq!(round_trip_reply(session_cleared.clone()), session_cleared);
 
     let lane_retired = MetaOrchestrateReply::LaneRetired(LaneRetired { lane: lane() });
     assert_eq!(round_trip_reply(lane_retired.clone()), lane_retired);
@@ -244,11 +341,25 @@ fn meta_orchestrate_request_exposes_contract_owned_operation_kind() {
     let refresh = MetaOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
     assert_eq!(refresh.operation_kind(), MetaOperationKind::Refresh);
 
-    let register = MetaOrchestrateRequest::Register(LaneRegistrationRequest {
-        role: role_vector(),
-        authority: LaneAuthority::Structural,
-    });
+    let register =
+        MetaOrchestrateRequest::Register(lane_registration_request(LaneRegistrationMode::Fresh));
     assert_eq!(register.operation_kind(), MetaOperationKind::Register);
+
+    let unregister = MetaOrchestrateRequest::Unregister(LaneUnregistrationRequest {
+        session: session(),
+        lane: lane(),
+        details: lane_details(),
+    });
+    assert_eq!(unregister.operation_kind(), MetaOperationKind::Unregister);
+
+    let clear_session = MetaOrchestrateRequest::ClearSession(SessionClearRequest {
+        session: session(),
+        details: lane_details(),
+    });
+    assert_eq!(
+        clear_session.operation_kind(),
+        MetaOperationKind::ClearSession
+    );
 
     let set_authority = MetaOrchestrateRequest::SetAuthority(LaneAuthorityChange {
         lane: lane(),

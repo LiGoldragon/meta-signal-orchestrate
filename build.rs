@@ -1,8 +1,6 @@
 use std::{env, path::PathBuf};
 
-use schema_rust::build::{
-    CargoSchemaMetadata, DependencySchema, GenerationDriver, GenerationPlan,
-};
+use schema_rust::build::{CargoSchemaMetadata, DependencySchema, GenerationDriver, GenerationPlan};
 
 fn main() {
     SchemaBuild::from_environment().run();
@@ -29,7 +27,7 @@ impl SchemaBuild {
         );
         CargoSchemaMetadata::new("meta-signal-orchestrate").emit_schema_directory(&self.crate_root);
         GenerationDriver::new(
-            GenerationPlan::wire_contract(&self.crate_root, "meta-signal-orchestrate", "0.3.0")
+            GenerationPlan::wire_contract(&self.crate_root, "meta-signal-orchestrate", "0.4.0")
                 .with_dependency_schema(signal_orchestrate_schema),
         )
         .generate()
@@ -39,7 +37,7 @@ impl SchemaBuild {
     }
 
     fn signal_orchestrate_schema(&self) -> DependencySchema {
-        DependencySchema::from_cargo_metadata("signal-orchestrate", "signal-orchestrate", "0.3.0")
+        DependencySchema::from_cargo_metadata("signal-orchestrate", "signal-orchestrate", "0.5.0")
             .expect("read signal-orchestrate schema metadata")
             .expect("signal-orchestrate must emit schema metadata")
     }
