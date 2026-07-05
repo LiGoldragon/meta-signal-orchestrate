@@ -32,13 +32,13 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
     let resolver = ImportResolver::new().with_dependency(
         "signal-orchestrate",
         signal_orchestrate_schema_directory(),
-        "0.3.0",
+        "0.5.0",
     );
     let engine = SchemaEngine::default();
     let schema = engine
         .lower_schema_source_with_resolver(
             artifact.source(),
-            SchemaIdentity::new("meta-signal-orchestrate:lib", "0.3.0"),
+            SchemaIdentity::new("meta-signal-orchestrate:lib", "0.4.0"),
             &resolver,
         )
         .expect("schema lowers");
@@ -46,9 +46,9 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
     let input = root_enum(schema.input());
     let output = root_enum(schema.output());
 
-    assert_eq!(input.variants.len(), 8);
-    assert_eq!(output.variants.len(), 12);
-    assert_eq!(schema.resolved_imports().len(), 9);
+    assert_eq!(input.variants.len(), 9);
+    assert_eq!(output.variants.len(), 14);
+    assert_eq!(schema.resolved_imports().len(), 16);
 
     let create = &input.variants[0];
     assert_eq!(create.name.as_str(), "Create");

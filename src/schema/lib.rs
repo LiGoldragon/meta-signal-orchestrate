@@ -16,11 +16,25 @@ pub use signal_orchestrate::schema::lib::Role as Role;
 #[rustfmt::skip]
 pub use signal_orchestrate::schema::lib::HarnessKind as HarnessKind;
 #[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::SessionIdentifier as SessionIdentifier;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::SessionName as SessionName;
+#[rustfmt::skip]
 pub use signal_orchestrate::schema::lib::LaneAuthority as LaneAuthority;
 #[rustfmt::skip]
 pub use signal_orchestrate::schema::lib::LaneIdentifier as LaneIdentifier;
 #[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::LaneDetails as LaneDetails;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::LaneOwner as LaneOwner;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::LaneAssignment as LaneAssignment;
+#[rustfmt::skip]
 pub use signal_orchestrate::schema::lib::LaneRegistration as LaneRegistration;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::LaneProjection as LaneProjection;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::TimestampNanos as TimestampNanos;
 #[rustfmt::skip]
 pub use signal_orchestrate::schema::lib::WirePath as WirePath;
 #[rustfmt::skip]
@@ -77,8 +91,40 @@ pub struct RefreshRepositoryIndexOrder {}
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneRegistrationRequest {
-    pub role: Role,
-    pub authority: LaneAuthority,
+    pub assignment: LaneAssignment,
+    pub mode: LaneRegistrationMode,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum LaneRegistrationMode {
+    Fresh,
+    Recovery,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct LaneUnregistrationRequest {
+    pub session: SessionIdentifier,
+    pub lane: LaneIdentifier,
+    pub details: LaneDetails,
 }
 
 #[rustfmt::skip]
@@ -190,6 +236,51 @@ pub struct LaneRegistered(LaneRegistration);
     feature = "nota-text",
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum LaneAlreadyRegisteredResolution {
+    FreshConflict,
+    RecoveryInherited,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct LaneAlreadyRegistered {
+    pub requested: LaneRegistrationRequest,
+    pub active: LaneProjection,
+    pub resolution: LaneAlreadyRegisteredResolution,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct LaneUnregistered {
+    pub session: SessionIdentifier,
+    pub lane: LaneIdentifier,
+    pub ended_at: TimestampNanos,
+    pub details: LaneDetails,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneRetired(LaneIdentifier);
 
@@ -248,6 +339,7 @@ pub enum MetaOperationKind {
     Retire,
     Refresh,
     Register,
+    Unregister,
     SetAuthority,
     RegisterWorktree,
     RefreshWorktreeIndex,
@@ -296,6 +388,7 @@ pub enum Input {
     Retire(Retirement),
     Refresh(RefreshRepositoryIndexOrder),
     Register(LaneRegistrationRequest),
+    Unregister(LaneUnregistrationRequest),
     SetAuthority(LaneAuthorityChange),
     RegisterWorktree(RegisterWorktree),
     RefreshWorktreeIndex(RefreshWorktreeIndexOrder),
@@ -314,6 +407,8 @@ pub enum Output {
     RoleCreationRejected(RoleCreationRejected),
     RepositoryIndexRefreshed(RepositoryIndexRefreshed),
     LaneRegistered(LaneRegistered),
+    LaneAlreadyRegistered(LaneAlreadyRegistered),
+    LaneUnregistered(LaneUnregistered),
     LaneRetired(LaneRetired),
     LaneAuthoritySet(LaneAuthoritySet),
     WorktreeRegistered(WorktreeRegistered),
@@ -537,6 +632,9 @@ impl Input {
     pub fn register(payload: LaneRegistrationRequest) -> Self {
         Self::Register(payload)
     }
+    pub fn unregister(payload: LaneUnregistrationRequest) -> Self {
+        Self::Unregister(payload)
+    }
     pub fn set_authority(payload: LaneAuthorityChange) -> Self {
         Self::SetAuthority(payload)
     }
@@ -567,6 +665,12 @@ impl Output {
     }
     pub fn lane_registered(payload: LaneRegistration) -> Self {
         Self::LaneRegistered(LaneRegistered::new(payload))
+    }
+    pub fn lane_already_registered(payload: LaneAlreadyRegistered) -> Self {
+        Self::LaneAlreadyRegistered(payload)
+    }
+    pub fn lane_unregistered(payload: LaneUnregistered) -> Self {
+        Self::LaneUnregistered(payload)
     }
     pub fn lane_retired(payload: LaneIdentifier) -> Self {
         Self::LaneRetired(LaneRetired::new(payload))
@@ -636,6 +740,13 @@ impl From<LaneRegistrationRequest> for Input {
 }
 
 #[rustfmt::skip]
+impl From<LaneUnregistrationRequest> for Input {
+    fn from(payload: LaneUnregistrationRequest) -> Self {
+        Self::Unregister(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<LaneAuthorityChange> for Input {
     fn from(payload: LaneAuthorityChange) -> Self {
         Self::SetAuthority(payload)
@@ -695,6 +806,20 @@ impl From<RepositoryIndexRefreshed> for Output {
 impl From<LaneRegistered> for Output {
     fn from(payload: LaneRegistered) -> Self {
         Self::LaneRegistered(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<LaneAlreadyRegistered> for Output {
+    fn from(payload: LaneAlreadyRegistered) -> Self {
+        Self::LaneAlreadyRegistered(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<LaneUnregistered> for Output {
+    fn from(payload: LaneUnregistered) -> Self {
+        Self::LaneUnregistered(payload)
     }
 }
 
@@ -785,22 +910,25 @@ pub mod short_header {
     pub const INPUT_RETIRE: u64 = 0x0001000000000000;
     pub const INPUT_REFRESH: u64 = 0x0002000000000000;
     pub const INPUT_REGISTER: u64 = 0x0003000000000000;
-    pub const INPUT_SET_AUTHORITY: u64 = 0x0004000000000000;
-    pub const INPUT_REGISTER_WORKTREE: u64 = 0x0005000000000000;
-    pub const INPUT_REFRESH_WORKTREE_INDEX: u64 = 0x0006000000000000;
-    pub const INPUT_ARCHIVE_WORKTREE: u64 = 0x0007000000000000;
+    pub const INPUT_UNREGISTER: u64 = 0x0004000000000000;
+    pub const INPUT_SET_AUTHORITY: u64 = 0x0005000000000000;
+    pub const INPUT_REGISTER_WORKTREE: u64 = 0x0006000000000000;
+    pub const INPUT_REFRESH_WORKTREE_INDEX: u64 = 0x0007000000000000;
+    pub const INPUT_ARCHIVE_WORKTREE: u64 = 0x0008000000000000;
     pub const OUTPUT_ROLE_CREATED: u64 = 0x0100000000000000;
     pub const OUTPUT_ROLE_RETIRED: u64 = 0x0101000000000000;
     pub const OUTPUT_ROLE_CREATION_REJECTED: u64 = 0x0102000000000000;
     pub const OUTPUT_REPOSITORY_INDEX_REFRESHED: u64 = 0x0103000000000000;
     pub const OUTPUT_LANE_REGISTERED: u64 = 0x0104000000000000;
-    pub const OUTPUT_LANE_RETIRED: u64 = 0x0105000000000000;
-    pub const OUTPUT_LANE_AUTHORITY_SET: u64 = 0x0106000000000000;
-    pub const OUTPUT_WORKTREE_REGISTERED: u64 = 0x0107000000000000;
-    pub const OUTPUT_WORKTREE_INDEX_REFRESHED: u64 = 0x0108000000000000;
-    pub const OUTPUT_WORKTREE_ARCHIVED: u64 = 0x0109000000000000;
-    pub const OUTPUT_PARTIAL_APPLIED: u64 = 0x010A000000000000;
-    pub const OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED: u64 = 0x010B000000000000;
+    pub const OUTPUT_LANE_ALREADY_REGISTERED: u64 = 0x0105000000000000;
+    pub const OUTPUT_LANE_UNREGISTERED: u64 = 0x0106000000000000;
+    pub const OUTPUT_LANE_RETIRED: u64 = 0x0107000000000000;
+    pub const OUTPUT_LANE_AUTHORITY_SET: u64 = 0x0108000000000000;
+    pub const OUTPUT_WORKTREE_REGISTERED: u64 = 0x0109000000000000;
+    pub const OUTPUT_WORKTREE_INDEX_REFRESHED: u64 = 0x010A000000000000;
+    pub const OUTPUT_WORKTREE_ARCHIVED: u64 = 0x010B000000000000;
+    pub const OUTPUT_PARTIAL_APPLIED: u64 = 0x010C000000000000;
+    pub const OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED: u64 = 0x010D000000000000;
 }
 
 #[rustfmt::skip]
@@ -858,6 +986,7 @@ pub enum InputRoute {
     Retire,
     Refresh,
     Register,
+    Unregister,
     SetAuthority,
     RegisterWorktree,
     RefreshWorktreeIndex,
@@ -885,6 +1014,8 @@ pub enum OutputRoute {
     RoleCreationRejected,
     RepositoryIndexRefreshed,
     LaneRegistered,
+    LaneAlreadyRegistered,
+    LaneUnregistered,
     LaneRetired,
     LaneAuthoritySet,
     WorktreeRegistered,
@@ -902,6 +1033,7 @@ impl Input {
             Self::Retire(_) => InputRoute::Retire,
             Self::Refresh(_) => InputRoute::Refresh,
             Self::Register(_) => InputRoute::Register,
+            Self::Unregister(_) => InputRoute::Unregister,
             Self::SetAuthority(_) => InputRoute::SetAuthority,
             Self::RegisterWorktree(_) => InputRoute::RegisterWorktree,
             Self::RefreshWorktreeIndex(_) => InputRoute::RefreshWorktreeIndex,
@@ -914,6 +1046,7 @@ impl Input {
             Self::Retire(_) => short_header::INPUT_RETIRE,
             Self::Refresh(_) => short_header::INPUT_REFRESH,
             Self::Register(_) => short_header::INPUT_REGISTER,
+            Self::Unregister(_) => short_header::INPUT_UNREGISTER,
             Self::SetAuthority(_) => short_header::INPUT_SET_AUTHORITY,
             Self::RegisterWorktree(_) => short_header::INPUT_REGISTER_WORKTREE,
             Self::RefreshWorktreeIndex(_) => short_header::INPUT_REFRESH_WORKTREE_INDEX,
@@ -926,6 +1059,7 @@ impl Input {
             short_header::INPUT_RETIRE => Ok(InputRoute::Retire),
             short_header::INPUT_REFRESH => Ok(InputRoute::Refresh),
             short_header::INPUT_REGISTER => Ok(InputRoute::Register),
+            short_header::INPUT_UNREGISTER => Ok(InputRoute::Unregister),
             short_header::INPUT_SET_AUTHORITY => Ok(InputRoute::SetAuthority),
             short_header::INPUT_REGISTER_WORKTREE => Ok(InputRoute::RegisterWorktree),
             short_header::INPUT_REFRESH_WORKTREE_INDEX => {
@@ -987,6 +1121,8 @@ impl Output {
             Self::RoleCreationRejected(_) => OutputRoute::RoleCreationRejected,
             Self::RepositoryIndexRefreshed(_) => OutputRoute::RepositoryIndexRefreshed,
             Self::LaneRegistered(_) => OutputRoute::LaneRegistered,
+            Self::LaneAlreadyRegistered(_) => OutputRoute::LaneAlreadyRegistered,
+            Self::LaneUnregistered(_) => OutputRoute::LaneUnregistered,
             Self::LaneRetired(_) => OutputRoute::LaneRetired,
             Self::LaneAuthoritySet(_) => OutputRoute::LaneAuthoritySet,
             Self::WorktreeRegistered(_) => OutputRoute::WorktreeRegistered,
@@ -1007,6 +1143,10 @@ impl Output {
                 short_header::OUTPUT_REPOSITORY_INDEX_REFRESHED
             }
             Self::LaneRegistered(_) => short_header::OUTPUT_LANE_REGISTERED,
+            Self::LaneAlreadyRegistered(_) => {
+                short_header::OUTPUT_LANE_ALREADY_REGISTERED
+            }
+            Self::LaneUnregistered(_) => short_header::OUTPUT_LANE_UNREGISTERED,
             Self::LaneRetired(_) => short_header::OUTPUT_LANE_RETIRED,
             Self::LaneAuthoritySet(_) => short_header::OUTPUT_LANE_AUTHORITY_SET,
             Self::WorktreeRegistered(_) => short_header::OUTPUT_WORKTREE_REGISTERED,
@@ -1033,6 +1173,10 @@ impl Output {
                 Ok(OutputRoute::RepositoryIndexRefreshed)
             }
             short_header::OUTPUT_LANE_REGISTERED => Ok(OutputRoute::LaneRegistered),
+            short_header::OUTPUT_LANE_ALREADY_REGISTERED => {
+                Ok(OutputRoute::LaneAlreadyRegistered)
+            }
+            short_header::OUTPUT_LANE_UNREGISTERED => Ok(OutputRoute::LaneUnregistered),
             short_header::OUTPUT_LANE_RETIRED => Ok(OutputRoute::LaneRetired),
             short_header::OUTPUT_LANE_AUTHORITY_SET => Ok(OutputRoute::LaneAuthoritySet),
             short_header::OUTPUT_WORKTREE_REGISTERED => {
@@ -1101,6 +1245,7 @@ impl signal_frame::SignalOperationHeads for Input {
         "Retire",
         "Refresh",
         "Register",
+        "Unregister",
         "SetAuthority",
         "RegisterWorktree",
         "RefreshWorktreeIndex",

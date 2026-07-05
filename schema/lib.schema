@@ -1,9 +1,16 @@
 { RoleIdentifier signal-orchestrate:lib:RoleIdentifier
   Role signal-orchestrate:lib:Role
   HarnessKind signal-orchestrate:lib:HarnessKind
+  SessionIdentifier signal-orchestrate:lib:SessionIdentifier
+  SessionName signal-orchestrate:lib:SessionName
   LaneAuthority signal-orchestrate:lib:LaneAuthority
   LaneIdentifier signal-orchestrate:lib:LaneIdentifier
+  LaneDetails signal-orchestrate:lib:LaneDetails
+  LaneOwner signal-orchestrate:lib:LaneOwner
+  LaneAssignment signal-orchestrate:lib:LaneAssignment
   LaneRegistration signal-orchestrate:lib:LaneRegistration
+  LaneProjection signal-orchestrate:lib:LaneProjection
+  TimestampNanos signal-orchestrate:lib:TimestampNanos
   WirePath signal-orchestrate:lib:WirePath
   Worktree signal-orchestrate:lib:Worktree
   PartialApplied signal-orchestrate:lib:PartialApplied }
@@ -11,6 +18,7 @@
  (Retire Retirement)
  (Refresh RefreshRepositoryIndexOrder)
  (Register LaneRegistrationRequest)
+ (Unregister LaneUnregistrationRequest)
  (SetAuthority LaneAuthorityChange)
  (RegisterWorktree RegisterWorktree)
  (RefreshWorktreeIndex RefreshWorktreeIndexOrder)
@@ -20,6 +28,8 @@
  (RoleCreationRejected RoleCreationRejected)
  (RepositoryIndexRefreshed RepositoryIndexRefreshed)
  (LaneRegistered LaneRegistered)
+ (LaneAlreadyRegistered LaneAlreadyRegistered)
+ (LaneUnregistered LaneUnregistered)
  (LaneRetired LaneRetired)
  (LaneAuthoritySet LaneAuthoritySet)
  (WorktreeRegistered WorktreeRegistered)
@@ -32,7 +42,9 @@
   RetireRoleOrder { role.RoleIdentifier }
   Retirement [(Role RetireRoleOrder) (Lane LaneIdentifier)]
   RefreshRepositoryIndexOrder {}
-  LaneRegistrationRequest { Role authority.LaneAuthority }
+  LaneRegistrationRequest { assignment.LaneAssignment mode.LaneRegistrationMode }
+  LaneRegistrationMode [Fresh Recovery]
+  LaneUnregistrationRequest { session.SessionIdentifier lane.LaneIdentifier details.LaneDetails }
   LaneAuthorityChange { lane.LaneIdentifier authority.LaneAuthority }
   RegisterWorktree { Worktree }
   RefreshWorktreeIndexOrder {}
@@ -44,12 +56,15 @@
   RoleCreationRejectionReason [RoleAlreadyExists ReportRepositoryAlreadyExists ReportLaneAlreadyExists]
   RepositoryIndexRefreshed { repositories.Integer }
   LaneRegistered { registration.LaneRegistration }
+  LaneAlreadyRegisteredResolution [FreshConflict RecoveryInherited]
+  LaneAlreadyRegistered { requested.LaneRegistrationRequest active.LaneProjection resolution.LaneAlreadyRegisteredResolution }
+  LaneUnregistered { session.SessionIdentifier lane.LaneIdentifier ended_at.TimestampNanos details.LaneDetails }
   LaneRetired { lane.LaneIdentifier }
   LaneAuthoritySet { lane.LaneIdentifier authority.LaneAuthority }
   WorktreeRegistered { Worktree }
   WorktreeIndexRefreshed { worktrees.Integer }
   WorktreeArchived { Worktree }
-  MetaOperationKind [Create Retire Refresh Register SetAuthority RegisterWorktree RefreshWorktreeIndex ArchiveWorktree]
+  MetaOperationKind [Create Retire Refresh Register Unregister SetAuthority RegisterWorktree RefreshWorktreeIndex ArchiveWorktree]
   MetaOrchestrateUnimplementedReason [NotBuiltYet DependencyNotReady]
   MetaOrchestrateRequestUnimplemented { operation.MetaOperationKind reason.MetaOrchestrateUnimplementedReason }
 }

@@ -10,9 +10,11 @@ use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
 pub use signal_orchestrate::{
     ApplicationFailure, ApplicationFailureReason, ApplicationSuccess, BranchName,
-    DownstreamComponent, HarnessKind, LaneAuthority, LaneIdentifier, LaneName, LaneRegistration,
-    PartialApplied, PurposeText, PushedState, RepositoryName, Role, RoleIdentifier, RoleName,
-    RoleToken, ScopeReason, TimestampNanos, WirePath, Worktree, WorktreeStatus,
+    DownstreamComponent, DurationNanos, HarnessKind, LaneAssignment, LaneAuthority, LaneDetails,
+    LaneIdentifier, LaneName, LaneOwner, LaneProjection, LaneRegistration, LaneResourceClaim,
+    LaneStatus, PartialApplied, PurposeText, PushedState, RepositoryName, Role, RoleIdentifier,
+    RoleName, RoleToken, ScopeReason, ScopeReference, SessionIdentifier, SessionName,
+    TimestampNanos, WirePath, Worktree, WorktreeStatus,
 };
 
 pub mod schema;
@@ -67,8 +69,35 @@ pub struct RefreshWorktreeIndexOrder {}
     Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneRegistrationRequest {
-    pub role: Role,
-    pub authority: LaneAuthority,
+    pub assignment: LaneAssignment,
+    pub mode: LaneRegistrationMode,
+}
+
+#[derive(
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+)]
+pub enum LaneRegistrationMode {
+    Fresh,
+    Recovery,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct LaneUnregistrationRequest {
+    pub session: SessionIdentifier,
+    pub lane: LaneIdentifier,
+    pub details: LaneDetails,
 }
 
 #[derive(
@@ -208,6 +237,43 @@ pub struct LaneRegistered {
 }
 
 #[derive(
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+)]
+pub enum LaneAlreadyRegisteredResolution {
+    FreshConflict,
+    RecoveryInherited,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct LaneAlreadyRegistered {
+    pub requested: LaneRegistrationRequest,
+    pub active: LaneProjection,
+    pub resolution: LaneAlreadyRegisteredResolution,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct LaneUnregistered {
+    pub session: SessionIdentifier,
+    pub lane: LaneIdentifier,
+    pub ended_at: TimestampNanos,
+    pub details: LaneDetails,
+}
+
+#[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneRetired {
@@ -253,6 +319,7 @@ signal_channel! {
         operation Retire(Retirement),
         operation Refresh(RefreshRepositoryIndexOrder),
         operation Register(LaneRegistrationRequest),
+        operation Unregister(LaneUnregistrationRequest),
         operation SetAuthority(LaneAuthorityChange),
         operation RegisterWorktree(RegisterWorktree),
         operation RefreshWorktreeIndex(RefreshWorktreeIndexOrder),
@@ -264,6 +331,8 @@ signal_channel! {
         RoleCreationRejected(RoleCreationRejected),
         RepositoryIndexRefreshed(RepositoryIndexRefreshed),
         LaneRegistered(LaneRegistered),
+        LaneAlreadyRegistered(LaneAlreadyRegistered),
+        LaneUnregistered(LaneUnregistered),
         LaneRetired(LaneRetired),
         LaneAuthoritySet(LaneAuthoritySet),
         WorktreeRegistered(WorktreeRegistered),
@@ -312,6 +381,12 @@ impl From<RefreshRepositoryIndexOrder> for MetaOrchestrateRequest {
 impl From<LaneRegistrationRequest> for MetaOrchestrateRequest {
     fn from(payload: LaneRegistrationRequest) -> Self {
         Self::Register(payload)
+    }
+}
+
+impl From<LaneUnregistrationRequest> for MetaOrchestrateRequest {
+    fn from(payload: LaneUnregistrationRequest) -> Self {
+        Self::Unregister(payload)
     }
 }
 

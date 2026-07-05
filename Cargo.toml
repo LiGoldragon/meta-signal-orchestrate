@@ -1,11 +1,11 @@
 [package]
 name         = "meta-signal-orchestrate"
-version      = "0.3.0"
+version      = "0.4.0"
 edition      = "2024"
 rust-version = "1.89"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/LiGoldragon/meta-signal-orchestrate"
-description  = "MetaSignal contract for privileged orchestrate role and repository administration."
+description  = "MetaSignal contract for privileged orchestrate role, session/lane lifecycle, and repository administration."
 publish      = false
 links        = "meta-signal-orchestrate"
 build        = "build.rs"
@@ -20,7 +20,7 @@ nota-text = ["signal-orchestrate/nota-text", "signal-frame/nota-text"]
 
 [dependencies]
 signal-frame                = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "drop-next", default-features = false }
-signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate.git", branch = "drop-next" }
+signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate.git", branch = "session-lane-protocol-contracts" }
 nota                   = { git = "https://github.com/LiGoldragon/nota.git", branch = "main" }
 rkyv                        = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 thiserror                   = "2"
