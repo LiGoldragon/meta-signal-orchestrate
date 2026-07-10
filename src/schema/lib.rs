@@ -53,8 +53,8 @@ pub use nota::{NotaDecodeError, NotaEncode, NotaSource};
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CreateRoleOrder {
-    pub role: RoleIdentifier,
-    pub harness: HarnessKind,
+    pub role_identifier: RoleIdentifier,
+    pub harness_kind: HarnessKind,
 }
 
 #[rustfmt::skip]
@@ -91,8 +91,8 @@ pub struct RefreshRepositoryIndexOrder {}
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneRegistrationRequest {
-    pub assignment: LaneAssignment,
-    pub mode: LaneRegistrationMode,
+    pub lane_assignment: LaneAssignment,
+    pub lane_registration_mode: LaneRegistrationMode,
 }
 
 #[rustfmt::skip]
@@ -122,9 +122,9 @@ pub enum LaneRegistrationMode {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneUnregistrationRequest {
-    pub session: SessionIdentifier,
-    pub lane: LaneIdentifier,
-    pub details: LaneDetails,
+    pub session_identifier: SessionIdentifier,
+    pub lane_identifier: LaneIdentifier,
+    pub lane_details: LaneDetails,
 }
 
 #[rustfmt::skip]
@@ -134,8 +134,8 @@ pub struct LaneUnregistrationRequest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SessionClearRequest {
-    pub session: SessionIdentifier,
-    pub details: LaneDetails,
+    pub session_identifier: SessionIdentifier,
+    pub lane_details: LaneDetails,
 }
 
 #[rustfmt::skip]
@@ -145,8 +145,8 @@ pub struct SessionClearRequest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneAuthorityChange {
-    pub lane: LaneIdentifier,
-    pub authority: LaneAuthority,
+    pub lane_identifier: LaneIdentifier,
+    pub lane_authority: LaneAuthority,
 }
 
 #[rustfmt::skip]
@@ -180,8 +180,8 @@ pub struct ArchiveWorktreeOrder(WirePath);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RoleCreated {
-    pub role: RoleIdentifier,
-    pub harness: HarnessKind,
+    pub role_identifier: RoleIdentifier,
+    pub harness_kind: HarnessKind,
     pub report_repository_path: WirePath,
     pub report_lane_path: WirePath,
 }
@@ -201,8 +201,8 @@ pub struct RoleRetired(RoleIdentifier);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RoleCreationRejected {
-    pub role: RoleIdentifier,
-    pub reason: RoleCreationRejectionReason,
+    pub role_identifier: RoleIdentifier,
+    pub role_creation_rejection_reason: RoleCreationRejectionReason,
 }
 
 #[rustfmt::skip]
@@ -269,9 +269,9 @@ pub enum LaneAlreadyRegisteredResolution {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneAlreadyRegistered {
-    pub requested: LaneRegistrationRequest,
-    pub active: LaneProjection,
-    pub resolution: LaneAlreadyRegisteredResolution,
+    pub lane_registration_request: LaneRegistrationRequest,
+    pub lane_projection: LaneProjection,
+    pub lane_already_registered_resolution: LaneAlreadyRegisteredResolution,
 }
 
 #[rustfmt::skip]
@@ -281,10 +281,10 @@ pub struct LaneAlreadyRegistered {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneUnregistered {
-    pub session: SessionIdentifier,
-    pub lane: LaneIdentifier,
-    pub ended_at: TimestampNanos,
-    pub details: LaneDetails,
+    pub session_identifier: SessionIdentifier,
+    pub lane_identifier: LaneIdentifier,
+    pub timestamp_nanos: TimestampNanos,
+    pub lane_details: LaneDetails,
 }
 
 #[rustfmt::skip]
@@ -294,10 +294,10 @@ pub struct LaneUnregistered {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SessionCleared {
-    pub session: SessionIdentifier,
-    pub cleared_lanes: Integer,
-    pub ended_at: TimestampNanos,
-    pub details: LaneDetails,
+    pub session_identifier: SessionIdentifier,
+    pub integer: Integer,
+    pub timestamp_nanos: TimestampNanos,
+    pub lane_details: LaneDetails,
 }
 
 #[rustfmt::skip]
@@ -315,8 +315,8 @@ pub struct LaneRetired(LaneIdentifier);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct LaneAuthoritySet {
-    pub lane: LaneIdentifier,
-    pub authority: LaneAuthority,
+    pub lane_identifier: LaneIdentifier,
+    pub lane_authority: LaneAuthority,
 }
 
 #[rustfmt::skip]
@@ -398,8 +398,8 @@ pub enum MetaOrchestrateUnimplementedReason {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct MetaOrchestrateRequestUnimplemented {
-    pub operation: MetaOperationKind,
-    pub reason: MetaOrchestrateUnimplementedReason,
+    pub meta_operation_kind: MetaOperationKind,
+    pub meta_orchestrate_unimplemented_reason: MetaOrchestrateUnimplementedReason,
 }
 
 #[rustfmt::skip]

@@ -40,35 +40,35 @@
  (PartialApplied PartialApplied)
  (MetaOrchestrateRequestUnimplemented MetaOrchestrateRequestUnimplemented)]
 {
-  CreateRoleOrder { role.RoleIdentifier harness.HarnessKind }
-  RetireRoleOrder { role.RoleIdentifier }
+  CreateRoleOrder { RoleIdentifier HarnessKind }
+  RetireRoleOrder { RoleIdentifier }
   Retirement [(Role RetireRoleOrder) (Lane LaneIdentifier)]
   RefreshRepositoryIndexOrder {}
-  LaneRegistrationRequest { assignment.LaneAssignment mode.LaneRegistrationMode }
+  LaneRegistrationRequest { LaneAssignment LaneRegistrationMode }
   LaneRegistrationMode [Fresh Recovery]
-  LaneUnregistrationRequest { session.SessionIdentifier lane.LaneIdentifier details.LaneDetails }
-  SessionClearRequest { session.SessionIdentifier details.LaneDetails }
-  LaneAuthorityChange { lane.LaneIdentifier authority.LaneAuthority }
+  LaneUnregistrationRequest { SessionIdentifier LaneIdentifier LaneDetails }
+  SessionClearRequest { SessionIdentifier LaneDetails }
+  LaneAuthorityChange { LaneIdentifier LaneAuthority }
   RegisterWorktree { Worktree }
   RefreshWorktreeIndexOrder {}
-  ArchiveWorktreeOrder { path.WirePath }
+  ArchiveWorktreeOrder { WirePath }
 
-  RoleCreated { role.RoleIdentifier harness.HarnessKind report_repository_path.WirePath report_lane_path.WirePath }
-  RoleRetired { role.RoleIdentifier }
-  RoleCreationRejected { role.RoleIdentifier reason.RoleCreationRejectionReason }
+  RoleCreated { RoleIdentifier HarnessKind report_repository_path.WirePath report_lane_path.WirePath }
+  RoleRetired { RoleIdentifier }
+  RoleCreationRejected { RoleIdentifier RoleCreationRejectionReason }
   RoleCreationRejectionReason [RoleAlreadyExists ReportRepositoryAlreadyExists ReportLaneAlreadyExists]
-  RepositoryIndexRefreshed { repositories.Integer }
-  LaneRegistered { registration.LaneRegistration }
+  RepositoryIndexRefreshed { Integer }
+  LaneRegistered { LaneRegistration }
   LaneAlreadyRegisteredResolution [FreshConflict RecoveryInherited]
-  LaneAlreadyRegistered { requested.LaneRegistrationRequest active.LaneProjection resolution.LaneAlreadyRegisteredResolution }
-  LaneUnregistered { session.SessionIdentifier lane.LaneIdentifier ended_at.TimestampNanos details.LaneDetails }
-  SessionCleared { session.SessionIdentifier cleared_lanes.Integer ended_at.TimestampNanos details.LaneDetails }
-  LaneRetired { lane.LaneIdentifier }
-  LaneAuthoritySet { lane.LaneIdentifier authority.LaneAuthority }
+  LaneAlreadyRegistered { LaneRegistrationRequest LaneProjection LaneAlreadyRegisteredResolution }
+  LaneUnregistered { SessionIdentifier LaneIdentifier TimestampNanos LaneDetails }
+  SessionCleared { SessionIdentifier Integer TimestampNanos LaneDetails }
+  LaneRetired { LaneIdentifier }
+  LaneAuthoritySet { LaneIdentifier LaneAuthority }
   WorktreeRegistered { Worktree }
-  WorktreeIndexRefreshed { worktrees.Integer }
+  WorktreeIndexRefreshed { Integer }
   WorktreeArchived { Worktree }
   MetaOperationKind [Create Retire Refresh Register Unregister ClearSession SetAuthority RegisterWorktree RefreshWorktreeIndex ArchiveWorktree]
   MetaOrchestrateUnimplementedReason [NotBuiltYet DependencyNotReady]
-  MetaOrchestrateRequestUnimplemented { operation.MetaOperationKind reason.MetaOrchestrateUnimplementedReason }
+  MetaOrchestrateRequestUnimplemented { MetaOperationKind MetaOrchestrateUnimplementedReason }
 }

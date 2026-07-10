@@ -85,6 +85,7 @@ fn lane_projection() -> LaneProjection {
             reason: ScopeReason::from_text("contract claim held by active lane")
                 .expect("claim reason"),
             claimed_at: TimestampNanos::new(1_730_000_011_000_000_000),
+            age: DurationNanos::new(1_500_000_000),
         }],
         observed_at: TimestampNanos::new(1_730_000_012_000_000_000),
         age: DurationNanos::new(2_000_000_000),
