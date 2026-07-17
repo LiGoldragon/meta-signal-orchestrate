@@ -710,8 +710,8 @@ dependencies = [
 
 [[package]]
 name = "signal-orchestrate"
-version = "0.6.0"
-source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?branch=main#8c2ca59f176bd7fd2987f87766e9330cb15043bf"
+version = "0.7.0"
+source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?rev=f5e54e81018e1293ee1c830570b8af7ca5e2c8b8#f5e54e81018e1293ee1c830570b8af7ca5e2c8b8"
 dependencies = [
  "nota",
  "rkyv",
