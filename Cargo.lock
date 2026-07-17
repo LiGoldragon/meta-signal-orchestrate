@@ -325,12 +325,12 @@ checksum = "88904434abc2901f197fe8cc55f0445e7ded921dba5911dad2e2b39b48e663c4"
 
 [[package]]
 name = "meta-signal-orchestrate"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "nota",
  "rkyv",
  "schema",
- "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?rev=255823ab3d0d6c5cab26e26a8b1d60c63c52c7b4)",
+ "schema-rust 0.7.1",
  "signal-frame",
  "signal-orchestrate",
  "thiserror",
@@ -610,6 +610,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "schema-rust"
+version = "0.7.1"
+source = "git+https://github.com/LiGoldragon/schema-rust.git?rev=bc964c4f2945a637890192f0623db851f8320c27#bc964c4f2945a637890192f0623db851f8320c27"
+dependencies = [
+ "nota",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "schema-language",
+ "syn",
+ "thiserror",
+ "triad-runtime",
+]
+
+[[package]]
 name = "serde"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -684,7 +699,7 @@ dependencies = [
 [[package]]
 name = "signal-harness"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/signal-harness.git?branch=main#ad7ae26e1c31265e98e65ae01ba38bb7d8b5a68b"
+source = "git+https://github.com/LiGoldragon/signal-harness.git?branch=main#be3d398739a57c4e51968b976e26fcc59e6b0840"
 dependencies = [
  "nota",
  "rkyv",
@@ -695,12 +710,12 @@ dependencies = [
 
 [[package]]
 name = "signal-orchestrate"
-version = "0.5.0"
-source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?branch=main#be7e87df98769662ad4d0b4a5c695d1acfcb599f"
+version = "0.6.0"
+source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?branch=main#8c2ca59f176bd7fd2987f87766e9330cb15043bf"
 dependencies = [
  "nota",
  "rkyv",
- "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?rev=255823ab3d0d6c5cab26e26a8b1d60c63c52c7b4)",
+ "schema-rust 0.7.1",
  "signal-criome",
  "signal-frame",
  "signal-harness",
@@ -855,8 +870,8 @@ dependencies = [
 
 [[package]]
 name = "triad-runtime"
-version = "0.6.1"
-source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#895d2e6b9023b2d901fe1ab20e6f8f431c6113b7"
+version = "0.7.0"
+source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#d323f9024f8490961c687798cf2dad4aea54aa7e"
 dependencies = [
  "kameo",
  "rkyv",
