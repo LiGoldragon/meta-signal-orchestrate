@@ -38,7 +38,7 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
     let schema = engine
         .lower_schema_source_with_resolver(
             artifact.source(),
-            SchemaIdentity::new("meta-signal-orchestrate:lib", "0.4.0"),
+            SchemaIdentity::new("meta-signal-orchestrate:lib", "0.4.1"),
             &resolver,
         )
         .expect("schema lowers");
@@ -46,9 +46,9 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
     let input = root_enum(schema.input());
     let output = root_enum(schema.output());
 
-    assert_eq!(input.variants.len(), 10);
-    assert_eq!(output.variants.len(), 15);
-    assert_eq!(schema.resolved_imports().len(), 16);
+    assert_eq!(input.variants.len(), 11);
+    assert_eq!(output.variants.len(), 17);
+    assert_eq!(schema.resolved_imports().len(), 22);
 
     let create = &input.variants[0];
     assert_eq!(create.name.as_str(), "Create");
@@ -66,4 +66,15 @@ fn meta_signal_orchestrate_schema_lowers_meta_routes_and_imports_shared_nouns() 
             .use_item()
             .contains("signal_orchestrate::schema::lib::Role")
     }));
+
+    let force_remove = &input.variants[10];
+    assert_eq!(force_remove.name.as_str(), "ForceRemoveRegistryRow");
+    assert_eq!(
+        force_remove
+            .payload
+            .as_ref()
+            .and_then(schema::TypeReference::plain_name)
+            .map(schema::Name::as_str),
+        Some("ForceRemoveRegistryRowOrder")
+    );
 }

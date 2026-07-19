@@ -13,6 +13,12 @@
   TimestampNanos signal-orchestrate:lib:TimestampNanos
   WirePath signal-orchestrate:lib:WirePath
   Worktree signal-orchestrate:lib:Worktree
+  RepositoryName signal-orchestrate:lib:RepositoryName
+  BranchName signal-orchestrate:lib:BranchName
+  ScopeReference signal-orchestrate:lib:ScopeReference
+  WorkflowRunHandle signal-orchestrate:lib:WorkflowRunHandle
+  OrchestratorAgentIdentifier signal-orchestrate:lib:OrchestratorAgentIdentifier
+  OrchestratorTopicPath signal-orchestrate:lib:OrchestratorTopicPath
   PartialApplied signal-orchestrate:lib:PartialApplied }
 [(Create CreateRoleOrder)
  (Retire Retirement)
@@ -23,7 +29,8 @@
  (SetAuthority LaneAuthorityChange)
  (RegisterWorktree RegisterWorktree)
  (RefreshWorktreeIndex RefreshWorktreeIndexOrder)
- (ArchiveWorktree ArchiveWorktreeOrder)]
+ (ArchiveWorktree ArchiveWorktreeOrder)
+ (ForceRemoveRegistryRow ForceRemoveRegistryRowOrder)]
 [(RoleCreated RoleCreated)
  (RoleRetired RoleRetired)
  (RoleCreationRejected RoleCreationRejected)
@@ -37,6 +44,8 @@
  (WorktreeRegistered WorktreeRegistered)
  (WorktreeIndexRefreshed WorktreeIndexRefreshed)
  (WorktreeArchived WorktreeArchived)
+ (RegistryRowRemoved RegistryRowRemoved)
+ (RegistryRowNotFound RegistryRowNotFound)
  (PartialApplied PartialApplied)
  (MetaOrchestrateRequestUnimplemented MetaOrchestrateRequestUnimplemented)]
 {
@@ -52,6 +61,28 @@
   RegisterWorktree { Worktree }
   RefreshWorktreeIndexOrder {}
   ArchiveWorktreeOrder { WirePath }
+  ClaimRowIdentity { LaneIdentifier ScopeReference }
+  LaneRowIdentity { SessionIdentifier LaneIdentifier }
+  WorktreeRowIdentity { RepositoryName BranchName }
+  WorkflowModelResolutionRowIdentity { WorkflowRunHandle }
+  OrchestratorTopicMembershipRowIdentity { OrchestratorAgentIdentifier OrchestratorTopicPath }
+  ActivityRowIdentity { Integer }
+  DivergenceRowIdentity { Integer }
+  OrchestratorTriageAuditRowIdentity { Integer }
+  RegistryRowIdentity [
+    (Claim ClaimRowIdentity)
+    (Role RoleIdentifier)
+    (Lane LaneRowIdentity)
+    (Repository RepositoryName)
+    (Worktree WorktreeRowIdentity)
+    (Activity ActivityRowIdentity)
+    (Divergence DivergenceRowIdentity)
+    (WorkflowModelResolution WorkflowModelResolutionRowIdentity)
+    (OrchestratorAgent OrchestratorAgentIdentifier)
+    (OrchestratorTopic OrchestratorTopicPath)
+    (OrchestratorTopicMembership OrchestratorTopicMembershipRowIdentity)
+    (OrchestratorTriageAudit OrchestratorTriageAuditRowIdentity)]
+  ForceRemoveRegistryRowOrder { RegistryRowIdentity }
 
   RoleCreated { RoleIdentifier HarnessKind report_repository_path.WirePath report_lane_path.WirePath }
   RoleRetired { RoleIdentifier }
@@ -68,7 +99,9 @@
   WorktreeRegistered { Worktree }
   WorktreeIndexRefreshed { Integer }
   WorktreeArchived { Worktree }
-  MetaOperationKind [Create Retire Refresh Register Unregister ClearSession SetAuthority RegisterWorktree RefreshWorktreeIndex ArchiveWorktree]
+  RegistryRowRemoved { RegistryRowIdentity TimestampNanos }
+  RegistryRowNotFound { RegistryRowIdentity }
+  MetaOperationKind [Create Retire Refresh Register Unregister ClearSession SetAuthority RegisterWorktree RefreshWorktreeIndex ArchiveWorktree ForceRemoveRegistryRow]
   MetaOrchestrateUnimplementedReason [NotBuiltYet DependencyNotReady]
   MetaOrchestrateRequestUnimplemented { MetaOperationKind MetaOrchestrateUnimplementedReason }
 }

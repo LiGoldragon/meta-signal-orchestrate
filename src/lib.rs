@@ -12,9 +12,10 @@ pub use signal_orchestrate::{
     ApplicationFailure, ApplicationFailureReason, ApplicationSuccess, BranchName,
     DownstreamComponent, DurationNanos, HarnessKind, LaneAssignment, LaneAuthority, LaneDetails,
     LaneIdentifier, LaneName, LaneOwner, LaneProjection, LaneRegistration, LaneResourceClaim,
-    LaneStatus, PartialApplied, PurposeText, PushedState, RepositoryName, Role, RoleIdentifier,
-    RoleName, RoleToken, ScopeReason, ScopeReference, SessionIdentifier, SessionName,
-    TimestampNanos, WirePath, Worktree, WorktreeStatus,
+    LaneStatus, OrchestratorAgentIdentifier, OrchestratorTopicPath, PartialApplied, PurposeText,
+    PushedState, RepositoryName, Role, RoleIdentifier, RoleName, RoleToken, ScopeReason,
+    ScopeReference, SessionIdentifier, SessionName, TimestampNanos, WirePath, WorkflowRunHandle,
+    Worktree, WorktreeStatus,
 };
 
 pub mod schema;
@@ -194,6 +195,98 @@ pub struct ArchiveWorktreeOrder {
     pub path: WirePath,
 }
 
+/// The exact durable identity of a single claim row.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct ClaimRowIdentity {
+    pub lane: LaneIdentifier,
+    pub scope: ScopeReference,
+}
+
+/// The exact durable identity of a session-owned lane row.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct LaneRowIdentity {
+    pub session: SessionIdentifier,
+    pub lane: LaneIdentifier,
+}
+
+/// The exact durable identity of a worktree row. It intentionally does not use
+/// an owning lane: one lane may legitimately own worktrees in several repositories.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct WorktreeRowIdentity {
+    pub repository: RepositoryName,
+    pub branch: BranchName,
+}
+
+/// The exact durable identity of a workflow model-resolution row.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct WorkflowModelResolutionRowIdentity {
+    pub handle: WorkflowRunHandle,
+}
+
+/// The exact durable identity of one agent's seat on one topic.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct OrchestratorTopicMembershipRowIdentity {
+    pub agent_identifier: OrchestratorAgentIdentifier,
+    pub topic: OrchestratorTopicPath,
+}
+
+/// Storage-minted slot identities stay distinct by table, even though each
+/// serializes as one integer.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, Copy, PartialEq, Eq,
+)]
+pub struct ActivityRowIdentity(pub u64);
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, Copy, PartialEq, Eq,
+)]
+pub struct DivergenceRowIdentity(pub u64);
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, Copy, PartialEq, Eq,
+)]
+pub struct OrchestratorTriageAuditRowIdentity(pub u64);
+
+/// One exact durable row selected for an owner-authorized maintenance removal.
+/// This selection never uses a lane-only or free-text lookup.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub enum RegistryRowIdentity {
+    Claim(ClaimRowIdentity),
+    Role(RoleIdentifier),
+    Lane(LaneRowIdentity),
+    Repository(RepositoryName),
+    Worktree(WorktreeRowIdentity),
+    Activity(ActivityRowIdentity),
+    Divergence(DivergenceRowIdentity),
+    WorkflowModelResolution(WorkflowModelResolutionRowIdentity),
+    OrchestratorAgent(OrchestratorAgentIdentifier),
+    OrchestratorTopic(OrchestratorTopicPath),
+    OrchestratorTopicMembership(OrchestratorTopicMembershipRowIdentity),
+    OrchestratorTriageAudit(OrchestratorTriageAuditRowIdentity),
+}
+
+/// Force-remove exactly one registry row. This operation changes only durable
+/// orchestrate state and its derived projections; it never deletes a checkout,
+/// repository, report directory, or other live filesystem resource.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct ForceRemoveRegistryRowOrder {
+    pub target: RegistryRowIdentity,
+}
+
 /// Ack for [`ArchiveWorktreeOrder`] — echoes the worktree after the status
 /// transition to `Archived`.
 #[derive(
@@ -201,6 +294,25 @@ pub struct ArchiveWorktreeOrder {
 )]
 pub struct WorktreeArchived {
     pub worktree: Worktree,
+}
+
+/// A successful meta maintenance removal. `removed_at` is minted by the
+/// daemon, and the sema retraction is its durable audit event.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct RegistryRowRemoved {
+    pub target: RegistryRowIdentity,
+    pub removed_at: TimestampNanos,
+}
+
+/// The exact requested maintenance row was already absent; no state or
+/// filesystem resource changed.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+pub struct RegistryRowNotFound {
+    pub target: RegistryRowIdentity,
 }
 
 /// Ack for [`RegisterWorktree`] — echoes the registered worktree.
@@ -343,6 +455,7 @@ signal_channel! {
         operation RegisterWorktree(RegisterWorktree),
         operation RefreshWorktreeIndex(RefreshWorktreeIndexOrder),
         operation ArchiveWorktree(ArchiveWorktreeOrder),
+        operation ForceRemoveRegistryRow(ForceRemoveRegistryRowOrder),
     }
     reply MetaOrchestrateReply {
         RoleCreated(RoleCreated),
@@ -358,6 +471,8 @@ signal_channel! {
         WorktreeRegistered(WorktreeRegistered),
         WorktreeIndexRefreshed(WorktreeIndexRefreshed),
         WorktreeArchived(WorktreeArchived),
+        RegistryRowRemoved(RegistryRowRemoved),
+        RegistryRowNotFound(RegistryRowNotFound),
         PartialApplied(PartialApplied),
         MetaOrchestrateRequestUnimplemented(MetaOrchestrateRequestUnimplemented),
     }
@@ -431,5 +546,11 @@ impl From<RefreshWorktreeIndexOrder> for MetaOrchestrateRequest {
 impl From<ArchiveWorktreeOrder> for MetaOrchestrateRequest {
     fn from(payload: ArchiveWorktreeOrder) -> Self {
         Self::ArchiveWorktree(payload)
+    }
+}
+
+impl From<ForceRemoveRegistryRowOrder> for MetaOrchestrateRequest {
+    fn from(payload: ForceRemoveRegistryRowOrder) -> Self {
+        Self::ForceRemoveRegistryRow(payload)
     }
 }

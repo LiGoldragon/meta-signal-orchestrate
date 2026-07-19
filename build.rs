@@ -27,7 +27,7 @@ impl SchemaBuild {
         );
         CargoSchemaMetadata::new("meta-signal-orchestrate").emit_schema_directory(&self.crate_root);
         GenerationDriver::new(
-            GenerationPlan::wire_contract(&self.crate_root, "meta-signal-orchestrate", "0.4.0")
+            GenerationPlan::wire_contract(&self.crate_root, "meta-signal-orchestrate", "0.4.1")
                 .with_dependency_schema(signal_orchestrate_schema),
         )
         .generate()

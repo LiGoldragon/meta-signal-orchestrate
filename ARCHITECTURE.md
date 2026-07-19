@@ -33,6 +33,7 @@ The public meta request surface is now:
 - `Register(LaneRegistrationRequest)`
 - `Unregister(LaneUnregistrationRequest)`
 - `SetAuthority(LaneAuthorityChange)`
+- `ForceRemoveRegistryRow(ForceRemoveRegistryRowOrder)`
 
 There is no public `Mutate` / `Retract` tag in this contract. The
 meta socket remains the authority boundary; `orchestrate`
@@ -51,6 +52,7 @@ class labels (Layer 3) for observation. See
 | `Register` | `Mutate` | Atomically claim an orchestrator-assigned session/lane lifecycle registration. |
 | `Unregister` | `Retract` | End an active session/lane lifecycle registration. |
 | `SetAuthority` | `Mutate` | Change registered lane authority metadata. |
+| `ForceRemoveRegistryRow` | `Retract` | Owner-authorized exact-row maintenance removal; it affects durable orchestrate state and derived projections only, never a checkout or other live filesystem resource. |
 
 | Reply | Meaning |
 |---|---|
@@ -62,6 +64,8 @@ class labels (Layer 3) for observation. See
 | `LaneAlreadyRegistered` | The atomic registration check found an active lane and carries active projection, age/time/details, plus `FreshConflict` or `RecoveryInherited` resolution. |
 | `LaneUnregistered` | The daemon ended the active session/lane lifecycle registration. |
 | `PartialApplied` | One or more downstream mutation legs succeeded while one or more sibling legs failed; orchestrate records the divergence instead of rolling back. |
+| `RegistryRowRemoved` | The exact requested row was retracted; the reply carries the typed identity and daemon-minted removal time. |
+| `RegistryRowNotFound` | The exact requested row was already absent; nothing changed. |
 | `MetaOrchestrateRequestUnimplemented` | The request is part of the meta vocabulary but not implemented by the current runtime. |
 
 ## 2 · Shared Nouns
@@ -75,7 +79,8 @@ This crate imports role and path nouns from
 - `SessionIdentifier`, `LaneAssignment`, `LaneRegistration`, `LaneProjection`,
   `LaneDetails`, and related lane owner/status/resource-claim projection nouns
 - `PartialApplied` and its downstream success/failure records
-- `WirePath`
+- `WirePath`, `RepositoryName`, `BranchName`, `ScopeReference`, `WorkflowRunHandle`,
+  `OrchestratorAgentIdentifier`, and `OrchestratorTopicPath`
 
 It does not duplicate ordinary claim, release, handoff, activity, or
 scope records.
@@ -89,6 +94,7 @@ scope records.
 | Contract code contains no runtime. | Source contains no Kameo, Tokio, sema-engine, redb, filesystem mutation, GitHub, or ghq implementation. |
 | Harness assignment is typed, not hidden in a role string. | `CreateRoleOrder` carries `HarnessKind` beside `RoleIdentifier`. |
 | Lane lifecycle is meta-only and atomic. | `LaneRegistrationRequest` carries explicit `SessionIdentifier`, assigned `LaneIdentifier`, owner, details, and `Fresh`/`Recovery` mode; ordinary `signal-orchestrate` has no lifecycle mutation root. |
+| Forced maintenance is exact and meta-only. | `ForceRemoveRegistryRowOrder` carries a closed `RegistryRowIdentity` variant for every durable mutable row family (claim, role, lane, repository, worktree, activity, divergence, workflow resolution, agent, topic, topic membership, and triage audit); no lane-only or free-text selector exists. |
 
 ## 4 · Non-Ownership
 

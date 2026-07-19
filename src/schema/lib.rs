@@ -40,6 +40,18 @@ pub use signal_orchestrate::schema::lib::WirePath as WirePath;
 #[rustfmt::skip]
 pub use signal_orchestrate::schema::lib::Worktree as Worktree;
 #[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::RepositoryName as RepositoryName;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::BranchName as BranchName;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::ScopeReference as ScopeReference;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::WorkflowRunHandle as WorkflowRunHandle;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::OrchestratorAgentIdentifier as OrchestratorAgentIdentifier;
+#[rustfmt::skip]
+pub use signal_orchestrate::schema::lib::OrchestratorTopicPath as OrchestratorTopicPath;
+#[rustfmt::skip]
 pub use signal_orchestrate::schema::lib::PartialApplied as PartialApplied;
 
 #[rustfmt::skip]
@@ -172,6 +184,111 @@ pub struct RefreshWorktreeIndexOrder {}
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ArchiveWorktreeOrder(WirePath);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ClaimRowIdentity {
+    pub lane_identifier: LaneIdentifier,
+    pub scope_reference: ScopeReference,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct LaneRowIdentity {
+    pub session_identifier: SessionIdentifier,
+    pub lane_identifier: LaneIdentifier,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct WorktreeRowIdentity {
+    pub repository_name: RepositoryName,
+    pub branch_name: BranchName,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct WorkflowModelResolutionRowIdentity(WorkflowRunHandle);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct OrchestratorTopicMembershipRowIdentity {
+    pub orchestrator_agent_identifier: OrchestratorAgentIdentifier,
+    pub orchestrator_topic_path: OrchestratorTopicPath,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ActivityRowIdentity(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct DivergenceRowIdentity(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct OrchestratorTriageAuditRowIdentity(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum RegistryRowIdentity {
+    Claim(ClaimRowIdentity),
+    Role(RoleIdentifier),
+    Lane(LaneRowIdentity),
+    Repository(RepositoryName),
+    Worktree(WorktreeRowIdentity),
+    Activity(ActivityRowIdentity),
+    Divergence(DivergenceRowIdentity),
+    WorkflowModelResolution(WorkflowModelResolutionRowIdentity),
+    OrchestratorAgent(OrchestratorAgentIdentifier),
+    OrchestratorTopic(OrchestratorTopicPath),
+    OrchestratorTopicMembership(OrchestratorTopicMembershipRowIdentity),
+    OrchestratorTriageAudit(OrchestratorTriageAuditRowIdentity),
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ForceRemoveRegistryRowOrder(RegistryRowIdentity);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -348,6 +465,25 @@ pub struct WorktreeArchived(Worktree);
     feature = "nota-text",
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RegistryRowRemoved {
+    pub registry_row_identity: RegistryRowIdentity,
+    pub timestamp_nanos: TimestampNanos,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RegistryRowNotFound(RegistryRowIdentity);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -369,6 +505,7 @@ pub enum MetaOperationKind {
     RegisterWorktree,
     RefreshWorktreeIndex,
     ArchiveWorktree,
+    ForceRemoveRegistryRow,
 }
 
 #[rustfmt::skip]
@@ -419,6 +556,7 @@ pub enum Input {
     RegisterWorktree(RegisterWorktree),
     RefreshWorktreeIndex(RefreshWorktreeIndexOrder),
     ArchiveWorktree(ArchiveWorktreeOrder),
+    ForceRemoveRegistryRow(ForceRemoveRegistryRowOrder),
 }
 
 #[rustfmt::skip]
@@ -441,6 +579,8 @@ pub enum Output {
     WorktreeRegistered(WorktreeRegistered),
     WorktreeIndexRefreshed(WorktreeIndexRefreshed),
     WorktreeArchived(WorktreeArchived),
+    RegistryRowRemoved(RegistryRowRemoved),
+    RegistryRowNotFound(RegistryRowNotFound),
     PartialApplied(PartialApplied),
     MetaOrchestrateRequestUnimplemented(MetaOrchestrateRequestUnimplemented),
 }
@@ -498,6 +638,101 @@ impl ArchiveWorktreeOrder {
 #[rustfmt::skip]
 impl From<WirePath> for ArchiveWorktreeOrder {
     fn from(payload: WirePath) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl WorkflowModelResolutionRowIdentity {
+    pub fn new(payload: WorkflowRunHandle) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &WorkflowRunHandle {
+        &self.0
+    }
+    pub fn into_payload(self) -> WorkflowRunHandle {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<WorkflowRunHandle> for WorkflowModelResolutionRowIdentity {
+    fn from(payload: WorkflowRunHandle) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ActivityRowIdentity {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for ActivityRowIdentity {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl DivergenceRowIdentity {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for DivergenceRowIdentity {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl OrchestratorTriageAuditRowIdentity {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for OrchestratorTriageAuditRowIdentity {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ForceRemoveRegistryRowOrder {
+    pub fn new(payload: RegistryRowIdentity) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &RegistryRowIdentity {
+        &self.0
+    }
+    pub fn into_payload(self) -> RegistryRowIdentity {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<RegistryRowIdentity> for ForceRemoveRegistryRowOrder {
+    fn from(payload: RegistryRowIdentity) -> Self {
         Self::new(payload)
     }
 }
@@ -636,12 +871,73 @@ impl From<Worktree> for WorktreeArchived {
 }
 
 #[rustfmt::skip]
+impl RegistryRowNotFound {
+    pub fn new(payload: RegistryRowIdentity) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &RegistryRowIdentity {
+        &self.0
+    }
+    pub fn into_payload(self) -> RegistryRowIdentity {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<RegistryRowIdentity> for RegistryRowNotFound {
+    fn from(payload: RegistryRowIdentity) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl Retirement {
     pub fn role(payload: RoleIdentifier) -> Self {
         Self::Role(RetireRoleOrder::new(payload))
     }
     pub fn lane(payload: LaneIdentifier) -> Self {
         Self::Lane(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl RegistryRowIdentity {
+    pub fn claim(payload: ClaimRowIdentity) -> Self {
+        Self::Claim(payload)
+    }
+    pub fn role(payload: RoleIdentifier) -> Self {
+        Self::Role(payload)
+    }
+    pub fn lane(payload: LaneRowIdentity) -> Self {
+        Self::Lane(payload)
+    }
+    pub fn repository(payload: RepositoryName) -> Self {
+        Self::Repository(payload)
+    }
+    pub fn worktree(payload: WorktreeRowIdentity) -> Self {
+        Self::Worktree(payload)
+    }
+    pub fn activity(payload: Integer) -> Self {
+        Self::Activity(ActivityRowIdentity::new(payload))
+    }
+    pub fn divergence(payload: Integer) -> Self {
+        Self::Divergence(DivergenceRowIdentity::new(payload))
+    }
+    pub fn workflow_model_resolution(payload: WorkflowRunHandle) -> Self {
+        Self::WorkflowModelResolution(WorkflowModelResolutionRowIdentity::new(payload))
+    }
+    pub fn orchestrator_agent(payload: OrchestratorAgentIdentifier) -> Self {
+        Self::OrchestratorAgent(payload)
+    }
+    pub fn orchestrator_topic(payload: OrchestratorTopicPath) -> Self {
+        Self::OrchestratorTopic(payload)
+    }
+    pub fn orchestrator_topic_membership(
+        payload: OrchestratorTopicMembershipRowIdentity,
+    ) -> Self {
+        Self::OrchestratorTopicMembership(payload)
+    }
+    pub fn orchestrator_triage_audit(payload: Integer) -> Self {
+        Self::OrchestratorTriageAudit(OrchestratorTriageAuditRowIdentity::new(payload))
     }
 }
 
@@ -676,6 +972,9 @@ impl Input {
     }
     pub fn archive_worktree(payload: WirePath) -> Self {
         Self::ArchiveWorktree(ArchiveWorktreeOrder::new(payload))
+    }
+    pub fn force_remove_registry_row(payload: RegistryRowIdentity) -> Self {
+        Self::ForceRemoveRegistryRow(ForceRemoveRegistryRowOrder::new(payload))
     }
 }
 
@@ -720,6 +1019,12 @@ impl Output {
     pub fn worktree_archived(payload: Worktree) -> Self {
         Self::WorktreeArchived(WorktreeArchived::new(payload))
     }
+    pub fn registry_row_removed(payload: RegistryRowRemoved) -> Self {
+        Self::RegistryRowRemoved(payload)
+    }
+    pub fn registry_row_not_found(payload: RegistryRowIdentity) -> Self {
+        Self::RegistryRowNotFound(RegistryRowNotFound::new(payload))
+    }
     pub fn partial_applied(payload: PartialApplied) -> Self {
         Self::PartialApplied(payload)
     }
@@ -741,6 +1046,90 @@ impl From<RetireRoleOrder> for Retirement {
 impl From<LaneIdentifier> for Retirement {
     fn from(payload: LaneIdentifier) -> Self {
         Self::Lane(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ClaimRowIdentity> for RegistryRowIdentity {
+    fn from(payload: ClaimRowIdentity) -> Self {
+        Self::Claim(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<RoleIdentifier> for RegistryRowIdentity {
+    fn from(payload: RoleIdentifier) -> Self {
+        Self::Role(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<LaneRowIdentity> for RegistryRowIdentity {
+    fn from(payload: LaneRowIdentity) -> Self {
+        Self::Lane(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<RepositoryName> for RegistryRowIdentity {
+    fn from(payload: RepositoryName) -> Self {
+        Self::Repository(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<WorktreeRowIdentity> for RegistryRowIdentity {
+    fn from(payload: WorktreeRowIdentity) -> Self {
+        Self::Worktree(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ActivityRowIdentity> for RegistryRowIdentity {
+    fn from(payload: ActivityRowIdentity) -> Self {
+        Self::Activity(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<DivergenceRowIdentity> for RegistryRowIdentity {
+    fn from(payload: DivergenceRowIdentity) -> Self {
+        Self::Divergence(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<WorkflowModelResolutionRowIdentity> for RegistryRowIdentity {
+    fn from(payload: WorkflowModelResolutionRowIdentity) -> Self {
+        Self::WorkflowModelResolution(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<OrchestratorAgentIdentifier> for RegistryRowIdentity {
+    fn from(payload: OrchestratorAgentIdentifier) -> Self {
+        Self::OrchestratorAgent(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<OrchestratorTopicPath> for RegistryRowIdentity {
+    fn from(payload: OrchestratorTopicPath) -> Self {
+        Self::OrchestratorTopic(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<OrchestratorTopicMembershipRowIdentity> for RegistryRowIdentity {
+    fn from(payload: OrchestratorTopicMembershipRowIdentity) -> Self {
+        Self::OrchestratorTopicMembership(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<OrchestratorTriageAuditRowIdentity> for RegistryRowIdentity {
+    fn from(payload: OrchestratorTriageAuditRowIdentity) -> Self {
+        Self::OrchestratorTriageAudit(payload)
     }
 }
 
@@ -811,6 +1200,13 @@ impl From<RefreshWorktreeIndexOrder> for Input {
 impl From<ArchiveWorktreeOrder> for Input {
     fn from(payload: ArchiveWorktreeOrder) -> Self {
         Self::ArchiveWorktree(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ForceRemoveRegistryRowOrder> for Input {
+    fn from(payload: ForceRemoveRegistryRowOrder) -> Self {
+        Self::ForceRemoveRegistryRow(payload)
     }
 }
 
@@ -906,6 +1302,20 @@ impl From<WorktreeArchived> for Output {
 }
 
 #[rustfmt::skip]
+impl From<RegistryRowRemoved> for Output {
+    fn from(payload: RegistryRowRemoved) -> Self {
+        Self::RegistryRowRemoved(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<RegistryRowNotFound> for Output {
+    fn from(payload: RegistryRowNotFound) -> Self {
+        Self::RegistryRowNotFound(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<PartialApplied> for Output {
     fn from(payload: PartialApplied) -> Self {
         Self::PartialApplied(payload)
@@ -963,6 +1373,7 @@ pub mod short_header {
     pub const INPUT_REGISTER_WORKTREE: u64 = 0x0007000000000000;
     pub const INPUT_REFRESH_WORKTREE_INDEX: u64 = 0x0008000000000000;
     pub const INPUT_ARCHIVE_WORKTREE: u64 = 0x0009000000000000;
+    pub const INPUT_FORCE_REMOVE_REGISTRY_ROW: u64 = 0x000A000000000000;
     pub const OUTPUT_ROLE_CREATED: u64 = 0x0100000000000000;
     pub const OUTPUT_ROLE_RETIRED: u64 = 0x0101000000000000;
     pub const OUTPUT_ROLE_CREATION_REJECTED: u64 = 0x0102000000000000;
@@ -976,8 +1387,10 @@ pub mod short_header {
     pub const OUTPUT_WORKTREE_REGISTERED: u64 = 0x010A000000000000;
     pub const OUTPUT_WORKTREE_INDEX_REFRESHED: u64 = 0x010B000000000000;
     pub const OUTPUT_WORKTREE_ARCHIVED: u64 = 0x010C000000000000;
-    pub const OUTPUT_PARTIAL_APPLIED: u64 = 0x010D000000000000;
-    pub const OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED: u64 = 0x010E000000000000;
+    pub const OUTPUT_REGISTRY_ROW_REMOVED: u64 = 0x010D000000000000;
+    pub const OUTPUT_REGISTRY_ROW_NOT_FOUND: u64 = 0x010E000000000000;
+    pub const OUTPUT_PARTIAL_APPLIED: u64 = 0x010F000000000000;
+    pub const OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED: u64 = 0x0110000000000000;
 }
 
 #[rustfmt::skip]
@@ -1115,6 +1528,7 @@ pub enum InputRoute {
     RegisterWorktree,
     RefreshWorktreeIndex,
     ArchiveWorktree,
+    ForceRemoveRegistryRow,
 }
 
 #[rustfmt::skip]
@@ -1146,6 +1560,8 @@ pub enum OutputRoute {
     WorktreeRegistered,
     WorktreeIndexRefreshed,
     WorktreeArchived,
+    RegistryRowRemoved,
+    RegistryRowNotFound,
     PartialApplied,
     MetaOrchestrateRequestUnimplemented,
 }
@@ -1164,6 +1580,7 @@ impl Input {
             Self::RegisterWorktree(_) => InputRoute::RegisterWorktree,
             Self::RefreshWorktreeIndex(_) => InputRoute::RefreshWorktreeIndex,
             Self::ArchiveWorktree(_) => InputRoute::ArchiveWorktree,
+            Self::ForceRemoveRegistryRow(_) => InputRoute::ForceRemoveRegistryRow,
         }
     }
     pub fn short_header(&self) -> u64 {
@@ -1178,6 +1595,9 @@ impl Input {
             Self::RegisterWorktree(_) => short_header::INPUT_REGISTER_WORKTREE,
             Self::RefreshWorktreeIndex(_) => short_header::INPUT_REFRESH_WORKTREE_INDEX,
             Self::ArchiveWorktree(_) => short_header::INPUT_ARCHIVE_WORKTREE,
+            Self::ForceRemoveRegistryRow(_) => {
+                short_header::INPUT_FORCE_REMOVE_REGISTRY_ROW
+            }
         }
     }
     pub fn route_from_short_header(header: u64) -> Result<InputRoute, SignalFrameError> {
@@ -1194,6 +1614,9 @@ impl Input {
                 Ok(InputRoute::RefreshWorktreeIndex)
             }
             short_header::INPUT_ARCHIVE_WORKTREE => Ok(InputRoute::ArchiveWorktree),
+            short_header::INPUT_FORCE_REMOVE_REGISTRY_ROW => {
+                Ok(InputRoute::ForceRemoveRegistryRow)
+            }
             _ => {
                 Err(SignalFrameError::UnknownHeader {
                     root_enum: "Input",
@@ -1267,6 +1690,8 @@ impl Output {
             Self::WorktreeRegistered(_) => OutputRoute::WorktreeRegistered,
             Self::WorktreeIndexRefreshed(_) => OutputRoute::WorktreeIndexRefreshed,
             Self::WorktreeArchived(_) => OutputRoute::WorktreeArchived,
+            Self::RegistryRowRemoved(_) => OutputRoute::RegistryRowRemoved,
+            Self::RegistryRowNotFound(_) => OutputRoute::RegistryRowNotFound,
             Self::PartialApplied(_) => OutputRoute::PartialApplied,
             Self::MetaOrchestrateRequestUnimplemented(_) => {
                 OutputRoute::MetaOrchestrateRequestUnimplemented
@@ -1294,6 +1719,8 @@ impl Output {
                 short_header::OUTPUT_WORKTREE_INDEX_REFRESHED
             }
             Self::WorktreeArchived(_) => short_header::OUTPUT_WORKTREE_ARCHIVED,
+            Self::RegistryRowRemoved(_) => short_header::OUTPUT_REGISTRY_ROW_REMOVED,
+            Self::RegistryRowNotFound(_) => short_header::OUTPUT_REGISTRY_ROW_NOT_FOUND,
             Self::PartialApplied(_) => short_header::OUTPUT_PARTIAL_APPLIED,
             Self::MetaOrchestrateRequestUnimplemented(_) => {
                 short_header::OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED
@@ -1327,6 +1754,12 @@ impl Output {
                 Ok(OutputRoute::WorktreeIndexRefreshed)
             }
             short_header::OUTPUT_WORKTREE_ARCHIVED => Ok(OutputRoute::WorktreeArchived),
+            short_header::OUTPUT_REGISTRY_ROW_REMOVED => {
+                Ok(OutputRoute::RegistryRowRemoved)
+            }
+            short_header::OUTPUT_REGISTRY_ROW_NOT_FOUND => {
+                Ok(OutputRoute::RegistryRowNotFound)
+            }
             short_header::OUTPUT_PARTIAL_APPLIED => Ok(OutputRoute::PartialApplied),
             short_header::OUTPUT_META_ORCHESTRATE_REQUEST_UNIMPLEMENTED => {
                 Ok(OutputRoute::MetaOrchestrateRequestUnimplemented)
@@ -1402,6 +1835,7 @@ impl signal_frame::SignalOperationHeads for Input {
         "RegisterWorktree",
         "RefreshWorktreeIndex",
         "ArchiveWorktree",
+        "ForceRemoveRegistryRow",
     ];
 }
 #[rustfmt::skip]
