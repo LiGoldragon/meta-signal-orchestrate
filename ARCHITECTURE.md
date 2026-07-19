@@ -9,6 +9,22 @@ and repository administration.*
 
 This crate carries only typed wire vocabulary, NOTA codecs, and round-trip witnesses — no Kameo, Tokio, sema-engine, redb, filesystem mutation, GitHub, or ghq logic.
 
+### Registry-maintenance consumer status
+
+`ForceRemoveRegistryRow` is a producer-only v0.5.1 vocabulary release. Its
+closed exact-row selectors and codecs are pushed and tested here, but the
+current `orchestrate` runtime cannot portably consume this revision: refreshing
+the moving legacy `nota`/`schema-language`/`schema-rust` family creates
+incompatible duplicate codec trait universes. This contract must not be added to
+the daemon through a local path patch or a one-crate pin.
+
+Until the contract family publishes one coherent consumer-tested pin set, or the
+new Protos generator and legacy bridge migrate the family together, stale rows
+are removed only through existing lifecycle/reconciliation operations. The
+future runtime must lower the exact identity to a durable retraction and return
+`RegistryRowRemoved` or `RegistryRowNotFound`; it must never treat this contract
+as permission to mutate a checkout or any other live resource.
+
 ## 0 · TL;DR
 
 `meta-signal-orchestrate` is the meta-signal Signal surface for
