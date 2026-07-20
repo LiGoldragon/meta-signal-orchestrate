@@ -11,12 +11,13 @@ This crate carries only typed wire vocabulary, NOTA codecs, and round-trip witne
 
 ### Registry-maintenance consumer status
 
-`ForceRemoveRegistryRow` is a v0.5.2 producer vocabulary release with a
-coherent immutable legacy runtime family. Its closed exact-row selectors and
-codecs are pushed and tested here. The `orchestrate` runtime still needs a
-separate consumer integration; until then, stale rows are removed only through
-existing lifecycle/reconciliation operations. A consumer must use the published
-family pins rather than a local path patch or a moving branch selector.
+`ForceRemoveRegistryRow` is a v0.5.3 producer vocabulary release with a
+coherent immutable current-Criome-compatible runtime family. Its closed
+exact-row selectors and codecs are pushed and tested here. The `orchestrate`
+runtime still needs a separate consumer integration; until then, stale rows are
+removed only through existing lifecycle/reconciliation operations. A consumer
+must use the published family pins rather than a local path patch or a moving
+branch selector.
 
 The future runtime must lower the exact identity to a durable retraction and
 return `RegistryRowRemoved` or `RegistryRowNotFound`; it must never treat this
@@ -76,9 +77,9 @@ class labels (Layer 3) for observation. See
 | `LaneRegistered` | The daemon registered the assigned session/lane; ownership is established. |
 | `LaneAlreadyRegistered` | The atomic registration check found an active lane and carries active projection, age/time/details, plus `FreshConflict` or `RecoveryInherited` resolution. |
 | `LaneUnregistered` | The daemon ended the active session/lane lifecycle registration. |
-| `PartialApplied` | One or more downstream mutation legs succeeded while one or more sibling legs failed; orchestrate records the divergence instead of rolling back. |
 | `RegistryRowRemoved` | The exact requested row was retracted; the reply carries the typed identity and daemon-minted removal time. |
 | `RegistryRowNotFound` | The exact requested row was already absent; nothing changed. |
+| `PartialApplied` | One or more downstream mutation legs succeeded while one or more sibling legs failed; orchestrate records the divergence instead of rolling back. |
 | `MetaOrchestrateRequestUnimplemented` | The request is part of the meta vocabulary but not implemented by the current runtime. |
 
 ## 2 · Shared Nouns
@@ -92,6 +93,7 @@ This crate imports role and path nouns from
 - `SessionIdentifier`, `LaneAssignment`, `LaneRegistration`, `LaneProjection`,
   `LaneDetails`, and related lane owner/status/resource-claim projection nouns
 - `PartialApplied` and its downstream success/failure records
+- `RegistryRowIdentity`, a closed exact-key vocabulary for owner-authorized maintenance removal
 - `WirePath`, `RepositoryName`, `BranchName`, `ScopeReference`, `WorkflowRunHandle`,
   `OrchestratorAgentIdentifier`, and `OrchestratorTopicPath`
 
@@ -107,7 +109,7 @@ scope records.
 | Contract code contains no runtime. | Source contains no Kameo, Tokio, sema-engine, redb, filesystem mutation, GitHub, or ghq implementation. |
 | Harness assignment is typed, not hidden in a role string. | `CreateRoleOrder` carries `HarnessKind` beside `RoleIdentifier`. |
 | Lane lifecycle is meta-only and atomic. | `LaneRegistrationRequest` carries explicit `SessionIdentifier`, assigned `LaneIdentifier`, owner, details, and `Fresh`/`Recovery` mode; ordinary `signal-orchestrate` has no lifecycle mutation root. |
-| Forced maintenance is exact and meta-only. | `ForceRemoveRegistryRowOrder` carries a closed `RegistryRowIdentity` variant for every durable mutable row family (claim, role, lane, repository, worktree, activity, divergence, workflow resolution, agent, topic, topic membership, and triage audit); no lane-only or free-text selector exists. |
+| Maintenance removal is exact and non-destructive. | `ForceRemoveRegistryRowOrder` carries a closed `RegistryRowIdentity` variant for every durable mutable row family (claim, role, lane, repository, worktree, activity, divergence, workflow resolution, agent, topic, topic membership, and triage audit); it excludes counters and engine metadata, accepts no lane-only or free-text selector, and never authorizes filesystem or Jujutsu effects. |
 
 ## 4 · Non-Ownership
 

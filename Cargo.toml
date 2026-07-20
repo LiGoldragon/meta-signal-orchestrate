@@ -1,6 +1,6 @@
 [package]
 name         = "meta-signal-orchestrate"
-version      = "0.5.2"
+version      = "0.5.3"
 edition      = "2024"
 rust-version = "1.89"
 license      = "MIT OR Apache-2.0"
@@ -20,7 +20,7 @@ nota-text = ["signal-orchestrate/nota-text", "signal-frame/nota-text"]
 
 [dependencies]
 signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", rev = "91e675298b79ec2aab2e0714a5e3e5b2d6d07339", default-features = false }
-signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate.git", rev = "c4fd61db287e643cf15afe22a5f5d5b30a578320" }
+signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate.git", rev = "a90efaedddc5a39efbb495eb97cb009901262813" }
 nota = { git = "https://github.com/LiGoldragon/nota.git", rev = "ce7c564de0a0518eaa1938d55dccc460a67cadb4" }
 rkyv                        = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 thiserror                   = "2"
@@ -29,7 +29,7 @@ thiserror                   = "2"
 schema-rust = { git = "https://github.com/LiGoldragon/schema-rust.git", rev = "384337d1313df19b77641ac7240fcd2fc6864f54" }
 
 [dev-dependencies]
-schema = { git = "https://github.com/LiGoldragon/schema.git", branch = "main" }
+schema = { git = "https://github.com/LiGoldragon/schema.git", rev = "389dd16ba88d710f680f969b31d37a512efa2f72" }
 
 [lints.rust]
 unsafe_code = "forbid"
