@@ -3,26 +3,25 @@ use meta_signal_orchestrate::{
     BranchName, ClaimRowIdentity, CreateRoleOrder, DivergenceRowIdentity, DownstreamComponent,
     DurationNanos, ForceRemoveRegistryRowOrder, Frame, FrameBody, HarnessKind,
     LaneAlreadyRegistered, LaneAlreadyRegisteredResolution, LaneAssignment, LaneAuthority,
-    LaneAuthorityChange, LaneAuthoritySet, LaneDetails, LaneIdentifier, LaneOwner,
-    LaneProjection, LaneRegistered, LaneRegistration, LaneRegistrationMode,
-    LaneRegistrationRequest, LaneResourceClaim, LaneRetired, LaneRowIdentity, LaneStatus,
-    LaneUnregistered, LaneUnregistrationRequest, MetaOperationKind, MetaOrchestrateReply,
-    MetaOrchestrateRequest, MetaOrchestrateRequestUnimplemented,
-    MetaOrchestrateUnimplementedReason, OrchestratorAgentIdentifier,
-    OrchestratorTriageAuditRowIdentity, OrchestratorTopicMembershipRowIdentity,
-    OrchestratorTopicPath, PartialApplied, RefreshRepositoryIndexOrder, RegistryRowIdentity,
-    RegistryRowNotFound, RegistryRowRemoved, RepositoryIndexRefreshed, RepositoryName,
-    RetireRoleOrder, Retirement, Role, RoleCreated, RoleCreationRejected,
+    LaneAuthorityChange, LaneAuthoritySet, LaneDetails, LaneIdentifier, LaneOwner, LaneProjection,
+    LaneRegistered, LaneRegistration, LaneRegistrationMode, LaneRegistrationRequest,
+    LaneResourceClaim, LaneRetired, LaneRowIdentity, LaneStatus, LaneUnregistered,
+    LaneUnregistrationRequest, MetaOperationKind, MetaOrchestrateReply, MetaOrchestrateRequest,
+    MetaOrchestrateRequestUnimplemented, MetaOrchestrateUnimplementedReason,
+    OrchestratorAgentIdentifier, OrchestratorTopicMembershipRowIdentity, OrchestratorTopicPath,
+    OrchestratorTriageAuditRowIdentity, PartialApplied, RefreshRepositoryIndexOrder,
+    RegistryRowIdentity, RegistryRowNotFound, RegistryRowRemoved, RepositoryIndexRefreshed,
+    RepositoryName, RetireRoleOrder, Retirement, Role, RoleCreated, RoleCreationRejected,
     RoleCreationRejectionReason, RoleIdentifier, RoleRetired, RoleToken, ScopeReason,
     ScopeReference, SessionClearRequest, SessionCleared, SessionIdentifier, TimestampNanos,
     WirePath, WorkflowModelResolutionRowIdentity, WorkflowRunHandle, WorktreeIndexRefreshed,
     WorktreeRowIdentity,
 };
-use signal_orchestrate::WorkflowRunDigest;
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
     SubReply,
 };
+use signal_orchestrate::WorkflowRunDigest;
 
 fn role() -> RoleIdentifier {
     RoleIdentifier::from_wire_token("primary-hrhz").expect("role")
@@ -111,12 +110,10 @@ fn registry_row_identities() -> Vec<RegistryRowIdentity> {
         }),
         RegistryRowIdentity::OrchestratorAgent(agent.clone()),
         RegistryRowIdentity::OrchestratorTopic(topic.clone()),
-        RegistryRowIdentity::OrchestratorTopicMembership(
-            OrchestratorTopicMembershipRowIdentity {
-                agent_identifier: agent,
-                topic,
-            },
-        ),
+        RegistryRowIdentity::OrchestratorTopicMembership(OrchestratorTopicMembershipRowIdentity {
+            agent_identifier: agent,
+            topic,
+        }),
         RegistryRowIdentity::OrchestratorTriageAudit(OrchestratorTriageAuditRowIdentity(13)),
     ]
 }
@@ -223,11 +220,9 @@ fn meta_orchestrate_requests_round_trip() {
 #[test]
 fn force_remove_registry_row_round_trips_every_exact_table_identity() {
     for target in registry_row_identities() {
-        let request = MetaOrchestrateRequest::ForceRemoveRegistryRow(
-            ForceRemoveRegistryRowOrder {
-                target: target.clone(),
-            },
-        );
+        let request = MetaOrchestrateRequest::ForceRemoveRegistryRow(ForceRemoveRegistryRowOrder {
+            target: target.clone(),
+        });
         assert_eq!(round_trip_request(request.clone()), request);
 
         let removed = MetaOrchestrateReply::RegistryRowRemoved(RegistryRowRemoved {
@@ -236,9 +231,7 @@ fn force_remove_registry_row_round_trips_every_exact_table_identity() {
         });
         assert_eq!(round_trip_reply(removed.clone()), removed);
 
-        let absent = MetaOrchestrateReply::RegistryRowNotFound(RegistryRowNotFound {
-            target,
-        });
+        let absent = MetaOrchestrateReply::RegistryRowNotFound(RegistryRowNotFound { target });
         assert_eq!(round_trip_reply(absent.clone()), absent);
     }
 }
@@ -438,11 +431,10 @@ fn meta_orchestrate_request_exposes_contract_owned_operation_kind() {
         MetaOperationKind::SetAuthority
     );
 
-    let force_remove = MetaOrchestrateRequest::ForceRemoveRegistryRow(
-        ForceRemoveRegistryRowOrder {
+    let force_remove =
+        MetaOrchestrateRequest::ForceRemoveRegistryRow(ForceRemoveRegistryRowOrder {
             target: RegistryRowIdentity::Activity(ActivityRowIdentity(11)),
-        },
-    );
+        });
     assert_eq!(
         force_remove.operation_kind(),
         MetaOperationKind::ForceRemoveRegistryRow
