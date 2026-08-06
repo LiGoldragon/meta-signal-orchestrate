@@ -13,12 +13,18 @@ pub use signal_orchestrate::{
     DownstreamComponent, DurationNanos, HarnessKind, LaneAssignment, LaneAuthority, LaneDetails,
     LaneIdentifier, LaneName, LaneOwner, LaneProjection, LaneRegistration, LaneResourceClaim,
     LaneStatus, OrchestratorAgentIdentifier, OrchestratorTopicPath, PartialApplied, PurposeText,
-    PushedState, RepositoryName, Role, RoleIdentifier, RoleName, RoleToken, ScopeReason,
-    ScopeReference, SessionIdentifier, SessionName, TimestampNanos, WirePath, WorkflowRunHandle,
-    Worktree, WorktreeStatus,
+    PushedState, RepositoryName, Role, RoleIdentifier, RoleToken, ScopeReason, ScopeReference,
+    SessionIdentifier, TimestampNanos, WirePath, WorkflowRunHandle, Worktree, WorktreeStatus,
 };
 
+pub mod bootstrap_manifest;
 pub mod schema;
+
+/// Canonical authority Interface text verified by the build transaction.
+pub const AUTHORITY_INTERFACE_SOURCE: &str = include_str!("../schema/authority.ethos");
+
+/// Checked Rust projection of the authority Interface's role-free Types.
+pub const AUTHORITY_INTERFACE_RUST: &str = include_str!("schema/authority/generated.rs");
 
 #[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,

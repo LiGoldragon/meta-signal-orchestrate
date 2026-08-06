@@ -1,1 +1,3 @@
-pub mod lib;
+//! Checked projections of strict Protos interfaces.
+
+pub mod authority;

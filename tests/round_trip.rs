@@ -359,8 +359,7 @@ fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
 
 #[test]
 #[cfg(feature = "nota-text")]
-fn index_refresh_replies_round_trip_through_schema_derived_nota() {
-    use meta_signal_orchestrate::schema::lib as generated;
+fn index_refresh_replies_round_trip_through_nota() {
     use nota::{NotaEncode, NotaSource};
 
     let repository_refreshed = RepositoryIndexRefreshed::new(7);
@@ -370,10 +369,6 @@ fn index_refresh_replies_round_trip_through_schema_derived_nota() {
         .expect("decode repository refresh");
     assert_eq!(repository_decoded, repository_refreshed);
     assert_eq!(repository_decoded.repositories(), 7);
-    assert_eq!(
-        repository_text,
-        generated::RepositoryIndexRefreshed::new(7).to_nota()
-    );
 
     let worktree_refreshed = WorktreeIndexRefreshed::new(11);
     let worktree_text = worktree_refreshed.to_nota();
@@ -382,10 +377,6 @@ fn index_refresh_replies_round_trip_through_schema_derived_nota() {
         .expect("decode worktree refresh");
     assert_eq!(worktree_decoded, worktree_refreshed);
     assert_eq!(worktree_decoded.worktrees(), 11);
-    assert_eq!(
-        worktree_text,
-        generated::WorktreeIndexRefreshed::new(11).to_nota()
-    );
 }
 
 #[test]

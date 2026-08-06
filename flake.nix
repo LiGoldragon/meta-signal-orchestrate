@@ -27,17 +27,12 @@
         };
         inherit (rust) craneLib toolchain;
         examplesFilter = path: _type: builtins.match ".*/examples(/.*)?$" path != null;
-        schemaFilter = path: _type:
-          let
-            pathString = toString path;
-            schemaRoot = "${toString ./.}/schema";
-          in
-          pathString == schemaRoot || pkgs.lib.hasPrefix "${schemaRoot}/" pathString;
+        ethosFilter = path: type: type == "regular" && pkgs.lib.hasSuffix ".ethos" path;
         src = rust.cleanSource {
           root = ./.;
           extraFilters = [
             examplesFilter
-            schemaFilter
+            ethosFilter
           ];
         };
         commonArgs = {

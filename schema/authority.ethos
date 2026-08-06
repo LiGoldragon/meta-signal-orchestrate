@@ -1,0 +1,8 @@
+Interface.{1 0 0}
+[]
+{
+  []
+  []
+  []
+  [MetaOperationKind.[ArchiveWorktree Register RefreshWorktreeIndex ForceRemoveRegistryRow Retire Create RegisterWorktree Refresh ClearSession SetAuthority Unregister] MetaOrchestrateUnimplementedReason.[NotBuiltYet DependencyNotReady] RoleCreationRejectionReason.[ReportLaneAlreadyExists RoleAlreadyExists ReportRepositoryAlreadyExists] LaneAlreadyRegisteredResolution.[FreshConflict RecoveryInherited] LaneRegistrationMode.[Recovery Fresh]]
+}

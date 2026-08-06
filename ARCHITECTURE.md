@@ -3,41 +3,32 @@
 *MetaSignal contract for privileged `orchestrate` role, session/lane lifecycle,
 and repository administration.*
 
-## 0.5 · Direction
+## Direction
 
 `meta-signal-orchestrate` is the meta authority contract for mutating orchestration topology. It exists to make the authority split code-enforced now and filesystem-permission-enforced later: callers can compile against the ordinary `signal-orchestrate` contract without being able to express role creation or repository-index refresh orders. Partial-failure semantics are commit-first-success-and-record-divergence; the `PartialApplied` reply names that outcome on the wire.
 
 This crate carries only typed wire vocabulary, NOTA codecs, and round-trip witnesses — no Kameo, Tokio, sema-engine, redb, filesystem mutation, GitHub, or ghq logic.
 
-### Registry-maintenance consumer status
+## Ethos Interface Stage
 
-`ForceRemoveRegistryRow` is a v0.5.3 producer vocabulary release with a
-coherent immutable current-Criome-compatible runtime family. Its closed
-exact-row selectors and codecs are pushed and tested here. The `orchestrate`
-runtime still needs a separate consumer integration; until then, stale rows are
-removed only through existing lifecycle/reconciliation operations. A consumer
-must use the published family pins rather than a local path patch or a moving
-branch selector.
-
-The future runtime must lower the exact identity to a durable retraction and
-return `RegistryRowRemoved` or `RegistryRowNotFound`; it must never treat this
-contract as permission to mutate a checkout or any other live resource.
-
-## 0 · TL;DR
-
-`meta-signal-orchestrate` is the meta-signal Signal surface for
-mutating orchestration topology. Ordinary role claims, releases,
-handoffs, observations, and activity records stay in
+`schema/authority.ethos` is the authority source for the five local closed
+enumerations. It deliberately has no roles: this crate does not invent a
+second description of the ordinary orchestration vocabulary imported from
 `signal-orchestrate`.
 
-This split is code-enforced now and filesystem-permission-enforced
-later: callers can compile against the ordinary contract without being
-able to express role creation or repository-index refresh orders.
+The build accepts that source only through an authorized bootstrap transaction,
+Core Nomos revalidation, Whole Logos lowering, and Rust Logos projection. The
+checked Rust projection is an auditable witness of the Interface; public wire
+behavior and NOTA codecs remain handwritten Rust while the Protos execution
+surface grows into them. `META_SIGNAL_ORCHESTRATE_UPDATE_INTERFACE_ARTIFACTS=1`
+is the sole explicit refresh authority. Cargo metadata publishes the owned
+Ethos directory for structural consumers.
 
-## Migration history — contract-local verbs (2026-05-19)
+There is one Rust textual naming boundary: Rust Logos. Opaque authority seats
+and canonical-order bytes live in `src/bootstrap_manifest.rs`; spelling and
+source position never mint identity.
 
-This contract migrated from `signal-core` public `SignalVerb` wrappers
-to `signal-frame` contract-local operation roots.
+## Contract-local verbs
 
 The public meta request surface is now:
 
@@ -56,7 +47,7 @@ operations to executable form, and projects them to payloadless Sema
 class labels (Layer 3) for observation. See
 `~/primary/skills/component-triad.md` §"Verbs come in three layers".
 
-## 1 · Contract Surface (Layer 1)
+## Contract Surface (Layer 1)
 
 | Operation | Projected Sema class | Meaning |
 |---|---|---|
@@ -82,13 +73,12 @@ class labels (Layer 3) for observation. See
 | `PartialApplied` | One or more downstream mutation legs succeeded while one or more sibling legs failed; orchestrate records the divergence instead of rolling back. |
 | `MetaOrchestrateRequestUnimplemented` | The request is part of the meta vocabulary but not implemented by the current runtime. |
 
-## 2 · Shared Nouns
+## Shared Nouns
 
 This crate imports role and path nouns from
 `signal-orchestrate`:
 
 - `RoleIdentifier`
-- `RoleName` compatibility alias
 - `HarnessKind`
 - `SessionIdentifier`, `LaneAssignment`, `LaneRegistration`, `LaneProjection`,
   `LaneDetails`, and related lane owner/status/resource-claim projection nouns
@@ -100,7 +90,7 @@ This crate imports role and path nouns from
 It does not duplicate ordinary claim, release, handoff, activity, or
 scope records.
 
-## 3 · Constraints
+## Constraints
 
 | Constraint | Witness |
 |---|---|
@@ -111,7 +101,7 @@ scope records.
 | Lane lifecycle is meta-only and atomic. | `LaneRegistrationRequest` carries explicit `SessionIdentifier`, assigned `LaneIdentifier`, owner, details, and `Fresh`/`Recovery` mode; ordinary `signal-orchestrate` has no lifecycle mutation root. |
 | Maintenance removal is exact and non-destructive. | `ForceRemoveRegistryRowOrder` carries a closed `RegistryRowIdentity` variant for every durable mutable row family (claim, role, lane, repository, worktree, activity, divergence, workflow resolution, agent, topic, topic membership, and triage audit); it excludes counters and engine metadata, accepts no lane-only or free-text selector, and never authorizes filesystem or Jujutsu effects. |
 
-## 4 · Non-Ownership
+## Non-Ownership
 
 - No `orchestrate` daemon.
 - No role registry table.
@@ -124,8 +114,12 @@ scope records.
 ## Code Map
 
 ```text
-src/lib.rs            meta request/reply records and signal_channel! invocation
-tests/round_trip.rs   frame round trips and contract-local operation witnesses
+schema/authority.ethos               authority Interface for local closed types
+src/bootstrap_manifest.rs            opaque declaration seats and canonical order
+src/schema/authority/generated.rs    checked Rust Logos projection
+src/lib.rs                            wire records, codecs, and signal channel
+tests/bootstrap_boundary.rs          strict boundary and exact-pin witnesses
+tests/round_trip.rs                   native frame and NOTA round trips
 ```
 
 ## See Also
