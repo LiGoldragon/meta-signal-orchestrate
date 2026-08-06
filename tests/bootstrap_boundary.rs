@@ -25,7 +25,7 @@ fn build_uses_one_exact_verified_bootstrap_boundary() {
         "287fbd728a05b1a6be1dc8a28bcf3ca06d9916b3",
         "3f41813dd63904c7e2b3da4382eff64ed1bf12fe",
         "8aa0bcaeb29fe9e461a11706a469638d2fd109ac",
-        "bd5d1fde6823d800431d5d35d73167b6b7e2bf17",
+        "dd734ea08c6c4c7b48b12439e56f622e31cbd26f",
     ] {
         assert!(manifest.contains(revision), "missing revision {revision}");
     }
