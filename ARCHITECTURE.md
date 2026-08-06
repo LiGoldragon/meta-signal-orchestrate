@@ -7,7 +7,7 @@ and repository administration.*
 
 `meta-signal-orchestrate` is the meta authority contract for mutating orchestration topology. It exists to make the authority split code-enforced now and filesystem-permission-enforced later: callers can compile against the ordinary `signal-orchestrate` contract without being able to express role creation or repository-index refresh orders. Partial-failure semantics are commit-first-success-and-record-divergence; the `PartialApplied` reply names that outcome on the wire.
 
-This crate carries only typed wire vocabulary, NOTA codecs, and round-trip witnesses — no Kameo, Tokio, sema-engine, redb, filesystem mutation, GitHub, or ghq logic.
+This crate carries only typed wire vocabulary, DOTOS codecs, and round-trip witnesses — no Kameo, Tokio, sema-engine, redb, filesystem mutation, GitHub, or ghq logic.
 
 ## Ethos Interface Stage
 
@@ -19,7 +19,7 @@ second description of the ordinary orchestration vocabulary imported from
 The build accepts that source only through an authorized bootstrap transaction,
 Core Nomos revalidation, Whole Logos lowering, and Rust Logos projection. The
 checked Rust projection is an auditable witness of the Interface; public wire
-behavior and NOTA codecs remain handwritten Rust while the Protos execution
+behavior and DOTOS codecs remain handwritten Rust while the Protos execution
 surface grows into them. `META_SIGNAL_ORCHESTRATE_UPDATE_INTERFACE_ARTIFACTS=1`
 is the sole explicit refresh authority. Cargo metadata publishes the owned
 Ethos directory for structural consumers.
@@ -119,7 +119,7 @@ src/bootstrap_manifest.rs            opaque declaration seats and canonical orde
 src/schema/authority/generated.rs    checked Rust Logos projection
 src/lib.rs                            wire records, codecs, and signal channel
 tests/bootstrap_boundary.rs          strict boundary and exact-pin witnesses
-tests/round_trip.rs                   native frame and NOTA round trips
+tests/round_trip.rs                   native frame and DOTOS round trips
 ```
 
 ## See Also

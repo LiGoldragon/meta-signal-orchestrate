@@ -18,8 +18,8 @@ use meta_signal_orchestrate::{
     WorktreeRowIdentity,
 };
 use signal_frame::{
-    ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
-    SubReply,
+    ExchangeIdentifier, ExchangeLane, LaneSequence, LogVariant, NonEmpty, Reply, RequestPayload,
+    RootCode, SessionEpoch, SubReply, VariantCode, WireRoute,
 };
 use signal_orchestrate::WorkflowRunDigest;
 
@@ -142,10 +142,11 @@ fn exchange() -> ExchangeIdentifier {
 }
 
 fn round_trip_request(request: MetaOrchestrateRequest) -> MetaOrchestrateRequest {
-    let frame = Frame::new(FrameBody::Request {
-        exchange: exchange(),
-        request: request.into_request(),
-    });
+    let expected_route = WireRoute::try_from_log_variant(request.log_variant()).expect("route");
+    let frame = request
+        .into_frame(exchange())
+        .expect("request route is declared");
+    assert_eq!(frame.short_header().route(), expected_route);
     let bytes = frame.encode_length_prefixed().expect("encode");
     let decoded = Frame::decode_length_prefixed(&bytes).expect("decode");
     match decoded.into_body() {
@@ -158,10 +159,14 @@ fn round_trip_request(request: MetaOrchestrateRequest) -> MetaOrchestrateRequest
 }
 
 fn round_trip_reply(reply: MetaOrchestrateReply) -> MetaOrchestrateReply {
-    let frame = Frame::new(FrameBody::Reply {
-        exchange: exchange(),
-        reply: Reply::committed(NonEmpty::single(SubReply::Ok(reply))),
-    });
+    let route = WireRoute::new(RootCode::new(0), VariantCode::new(0));
+    let frame = Frame::new(
+        route,
+        FrameBody::Reply {
+            exchange: exchange(),
+            reply: Reply::committed(NonEmpty::single(SubReply::Ok(reply))),
+        },
+    );
     let bytes = frame.encode_length_prefixed().expect("encode");
     let decoded = Frame::decode_length_prefixed(&bytes).expect("decode");
     match decoded.into_body() {
@@ -337,18 +342,18 @@ fn meta_orchestrate_replies_round_trip() {
 }
 
 #[test]
-#[cfg(feature = "nota-text")]
-fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
-    use nota::{NotaEncode, NotaSource};
+#[cfg(feature = "dotos-text")]
+fn meta_orchestrate_operations_encode_as_contract_local_dotos_heads() {
+    use dotos::{DotosEncode, DotosSource};
 
     let operation = MetaOrchestrateRequest::Refresh(RefreshRepositoryIndexOrder {});
-    let text = operation.into_request().to_nota();
+    let text = operation.into_request().to_dotos();
 
-    assert_eq!(text, "(Refresh ())");
+    assert_eq!(text, "(Refresh {})");
     assert!(!text.contains("Mutate"));
     assert!(!text.contains("Retract"));
 
-    let decoded = NotaSource::new(&text)
+    let decoded = DotosSource::new(&text)
         .parse::<meta_signal_orchestrate::ChannelRequest>()
         .expect("decode");
     assert_eq!(
@@ -358,21 +363,21 @@ fn meta_orchestrate_operations_encode_as_contract_local_nota_heads() {
 }
 
 #[test]
-#[cfg(feature = "nota-text")]
-fn index_refresh_replies_round_trip_through_nota() {
-    use nota::{NotaEncode, NotaSource};
+#[cfg(feature = "dotos-text")]
+fn index_refresh_replies_round_trip_through_dotos() {
+    use dotos::{DotosEncode, DotosSource};
 
     let repository_refreshed = RepositoryIndexRefreshed::new(7);
-    let repository_text = repository_refreshed.to_nota();
-    let repository_decoded = NotaSource::new(&repository_text)
+    let repository_text = repository_refreshed.to_dotos();
+    let repository_decoded = DotosSource::new(&repository_text)
         .parse::<RepositoryIndexRefreshed>()
         .expect("decode repository refresh");
     assert_eq!(repository_decoded, repository_refreshed);
     assert_eq!(repository_decoded.repositories(), 7);
 
     let worktree_refreshed = WorktreeIndexRefreshed::new(11);
-    let worktree_text = worktree_refreshed.to_nota();
-    let worktree_decoded = NotaSource::new(&worktree_text)
+    let worktree_text = worktree_refreshed.to_dotos();
+    let worktree_decoded = DotosSource::new(&worktree_text)
         .parse::<WorktreeIndexRefreshed>()
         .expect("decode worktree refresh");
     assert_eq!(worktree_decoded, worktree_refreshed);

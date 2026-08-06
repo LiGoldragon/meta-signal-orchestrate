@@ -5,7 +5,7 @@
 //! `signal-orchestrate`. This crate carries meta-signal
 //! orders that mutate the orchestration substrate itself.
 
-use nota::{NotaDecode, NotaEncode};
+use dotos::{DotosDecode, DotosEncode};
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
 pub use signal_orchestrate::{
@@ -26,8 +26,20 @@ pub const AUTHORITY_INTERFACE_SOURCE: &str = include_str!("../schema/authority.e
 /// Checked Rust projection of the authority Interface's role-free Types.
 pub const AUTHORITY_INTERFACE_RUST: &str = include_str!("schema/authority/generated.rs");
 
+/// The meta Orchestrate contract occupies the second wire seat in its family.
+pub enum MetaOrchestrateWire {}
+
+impl signal_frame::WireContract for MetaOrchestrateWire {
+    const BINDING: signal_frame::ContractBinding = signal_frame::ContractBinding::new(
+        signal_frame::ContractId::new(
+            core::num::NonZeroU32::new(2).expect("the meta wire seat is nonzero"),
+        ),
+        signal_frame::WireRevision::new(core::num::NonZeroU16::MIN),
+    );
+}
+
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct CreateRoleOrder {
     pub role: RoleIdentifier,
@@ -35,14 +47,14 @@ pub struct CreateRoleOrder {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RetireRoleOrder {
     pub role: RoleIdentifier,
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub enum Retirement {
     Role(RetireRoleOrder),
@@ -50,7 +62,7 @@ pub enum Retirement {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RefreshRepositoryIndexOrder {}
 
@@ -58,7 +70,7 @@ pub struct RefreshRepositoryIndexOrder {}
 /// full [`Worktree`] record; the daemon may re-derive `last_activity`
 /// and `pushed_state` from the filesystem. Reply: [`WorktreeRegistered`].
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RegisterWorktree {
     pub worktree: Worktree,
@@ -68,12 +80,12 @@ pub struct RegisterWorktree {
 /// whole worktree index, mirroring [`RefreshRepositoryIndexOrder`].
 /// Reply: [`WorktreeIndexRefreshed`].
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RefreshWorktreeIndexOrder {}
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneRegistrationRequest {
     pub assignment: LaneAssignment,
@@ -84,8 +96,8 @@ pub struct LaneRegistrationRequest {
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
-    NotaEncode,
-    NotaDecode,
+    DotosEncode,
+    DotosDecode,
     Debug,
     Clone,
     Copy,
@@ -99,7 +111,7 @@ pub enum LaneRegistrationMode {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneUnregistrationRequest {
     pub session: SessionIdentifier,
@@ -108,7 +120,7 @@ pub struct LaneUnregistrationRequest {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct SessionClearRequest {
     pub session: SessionIdentifier,
@@ -116,7 +128,7 @@ pub struct SessionClearRequest {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneAuthorityChange {
     pub lane: LaneIdentifier,
@@ -124,7 +136,7 @@ pub struct LaneAuthorityChange {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RoleCreated {
     pub role: RoleIdentifier,
@@ -134,14 +146,14 @@ pub struct RoleCreated {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RoleRetired {
     pub role: RoleIdentifier,
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RoleCreationRejected {
     pub role: RoleIdentifier,
@@ -152,8 +164,8 @@ pub struct RoleCreationRejected {
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
-    NotaEncode,
-    NotaDecode,
+    DotosEncode,
+    DotosDecode,
     Debug,
     Clone,
     Copy,
@@ -171,8 +183,8 @@ pub enum RoleCreationRejectionReason {
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
-    NotaEncode,
-    NotaDecode,
+    DotosEncode,
+    DotosDecode,
     Debug,
     Clone,
     Copy,
@@ -193,9 +205,9 @@ impl RepositoryIndexRefreshed {
 
 /// Transition a single registered worktree's status to [`WorktreeStatus::Archived`].
 /// The daemon looks up the worktree by `path`, updates its status, and
-/// reprojects `worktrees.nota`. Reply: [`WorktreeArchived`].
+/// reprojects `worktrees.dotos`. Reply: [`WorktreeArchived`].
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct ArchiveWorktreeOrder {
     pub path: WirePath,
@@ -203,7 +215,7 @@ pub struct ArchiveWorktreeOrder {
 
 /// The exact durable identity of a single claim row.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct ClaimRowIdentity {
     pub lane: LaneIdentifier,
@@ -212,7 +224,7 @@ pub struct ClaimRowIdentity {
 
 /// The exact durable identity of a session-owned lane row.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneRowIdentity {
     pub session: SessionIdentifier,
@@ -222,7 +234,7 @@ pub struct LaneRowIdentity {
 /// The exact durable identity of a worktree row. It intentionally does not use
 /// an owning lane: one lane may legitimately own worktrees in several repositories.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct WorktreeRowIdentity {
     pub repository: RepositoryName,
@@ -231,7 +243,7 @@ pub struct WorktreeRowIdentity {
 
 /// The exact durable identity of a workflow model-resolution row.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct WorkflowModelResolutionRowIdentity {
     pub handle: WorkflowRunHandle,
@@ -239,7 +251,7 @@ pub struct WorkflowModelResolutionRowIdentity {
 
 /// The exact durable identity of one agent's seat on one topic.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct OrchestratorTopicMembershipRowIdentity {
     pub agent_identifier: OrchestratorAgentIdentifier,
@@ -252,8 +264,8 @@ pub struct OrchestratorTopicMembershipRowIdentity {
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
-    NotaEncode,
-    NotaDecode,
+    DotosEncode,
+    DotosDecode,
     Debug,
     Clone,
     Copy,
@@ -266,8 +278,8 @@ pub struct ActivityRowIdentity(pub u64);
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
-    NotaEncode,
-    NotaDecode,
+    DotosEncode,
+    DotosDecode,
     Debug,
     Clone,
     Copy,
@@ -280,8 +292,8 @@ pub struct DivergenceRowIdentity(pub u64);
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
-    NotaEncode,
-    NotaDecode,
+    DotosEncode,
+    DotosDecode,
     Debug,
     Clone,
     Copy,
@@ -293,7 +305,7 @@ pub struct OrchestratorTriageAuditRowIdentity(pub u64);
 /// One exact durable row selected for an owner-authorized maintenance removal.
 /// This selection never uses a lane-only or free-text lookup.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub enum RegistryRowIdentity {
     Claim(ClaimRowIdentity),
@@ -314,7 +326,7 @@ pub enum RegistryRowIdentity {
 /// orchestrate state and its derived projections; it never deletes a checkout,
 /// repository, report directory, or other live filesystem resource.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct ForceRemoveRegistryRowOrder {
     pub target: RegistryRowIdentity,
@@ -323,7 +335,7 @@ pub struct ForceRemoveRegistryRowOrder {
 /// Ack for [`ArchiveWorktreeOrder`] — echoes the worktree after the status
 /// transition to `Archived`.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct WorktreeArchived {
     pub worktree: Worktree,
@@ -332,7 +344,7 @@ pub struct WorktreeArchived {
 /// A successful meta maintenance removal. `removed_at` is minted by the
 /// daemon, and the sema retraction is its durable audit event.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RegistryRowRemoved {
     pub target: RegistryRowIdentity,
@@ -342,7 +354,7 @@ pub struct RegistryRowRemoved {
 /// The exact requested maintenance row was already absent; no state or
 /// filesystem resource changed.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct RegistryRowNotFound {
     pub target: RegistryRowIdentity,
@@ -350,7 +362,7 @@ pub struct RegistryRowNotFound {
 
 /// Ack for [`RegisterWorktree`] — echoes the registered worktree.
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct WorktreeRegistered {
     pub worktree: Worktree,
@@ -362,8 +374,8 @@ pub struct WorktreeRegistered {
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
-    NotaEncode,
-    NotaDecode,
+    DotosEncode,
+    DotosDecode,
     Debug,
     Clone,
     Copy,
@@ -383,7 +395,7 @@ impl WorktreeIndexRefreshed {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneRegistered {
     pub registration: LaneRegistration,
@@ -393,8 +405,8 @@ pub struct LaneRegistered {
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
-    NotaEncode,
-    NotaDecode,
+    DotosEncode,
+    DotosDecode,
     Debug,
     Clone,
     Copy,
@@ -408,7 +420,7 @@ pub enum LaneAlreadyRegisteredResolution {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneAlreadyRegistered {
     pub requested: LaneRegistrationRequest,
@@ -417,7 +429,7 @@ pub struct LaneAlreadyRegistered {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneUnregistered {
     pub session: SessionIdentifier,
@@ -427,7 +439,7 @@ pub struct LaneUnregistered {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct SessionCleared {
     pub session: SessionIdentifier,
@@ -437,14 +449,14 @@ pub struct SessionCleared {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneRetired {
     pub lane: LaneIdentifier,
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+    Archive, RkyvSerialize, RkyvDeserialize, DotosEncode, DotosDecode, Debug, Clone, PartialEq, Eq,
 )]
 pub struct LaneAuthoritySet {
     pub lane: LaneIdentifier,
@@ -455,8 +467,8 @@ pub struct LaneAuthoritySet {
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
-    NotaEncode,
-    NotaDecode,
+    DotosEncode,
+    DotosDecode,
     Debug,
     Clone,
     Copy,
@@ -469,7 +481,7 @@ pub enum MetaOrchestrateUnimplementedReason {
     DependencyNotReady,
 }
 
-#[cfg_attr(feature = "nota-text", derive(NotaEncode, NotaDecode))]
+#[cfg_attr(feature = "dotos-text", derive(DotosEncode, DotosDecode))]
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
 pub struct MetaOrchestrateRequestUnimplemented {
     pub operation: MetaOperationKind,
@@ -477,7 +489,7 @@ pub struct MetaOrchestrateRequestUnimplemented {
 }
 
 signal_channel! {
-    channel MetaOrchestrate {
+    channel MetaOrchestrate contract MetaOrchestrateWire {
         operation Create(CreateRoleOrder),
         operation Retire(Retirement),
         operation Refresh(RefreshRepositoryIndexOrder),
