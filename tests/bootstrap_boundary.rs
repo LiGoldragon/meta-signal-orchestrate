@@ -2,6 +2,7 @@ use meta_signal_orchestrate::{
     AUTHORITY_INTERFACE_RUST, AUTHORITY_INTERFACE_SOURCE, MetaOrchestrateWire,
 };
 use signal_frame::WireContract;
+use signal_orchestrate::OrchestrateWire;
 
 #[test]
 fn authority_interface_is_refresh_only_and_strictly_generated() {
@@ -20,4 +21,10 @@ fn meta_wire_binding_advances_to_revision_two() {
     let binding = MetaOrchestrateWire::BINDING;
     assert_eq!(binding.contract().value(), 2);
     assert_eq!(binding.revision().value(), 2);
+}
+
+#[test]
+fn ordinary_contract_binding_tracks_wire_revision_three() {
+    assert_eq!(OrchestrateWire::BINDING.contract().value(), 1);
+    assert_eq!(OrchestrateWire::BINDING.revision().value(), 3);
 }

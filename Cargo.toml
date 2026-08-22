@@ -16,7 +16,7 @@ path = "src/lib.rs"
 
 [dependencies]
 signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", rev = "8aa0bcaeb29fe9e461a11706a469638d2fd109ac", default-features = false }
-signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate.git", rev = "52c43ed0ed165a04fe0d77a4a9ee103c903f9d5c", default-features = false }
+signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate.git", rev = "a038c5c04fea5ff4a5ffcecfd0c9cdcc284d611f", default-features = false }
 rkyv                        = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 thiserror                   = "2"
 
