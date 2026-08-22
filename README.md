@@ -1,14 +1,10 @@
 # meta-signal-orchestrate
 
-MetaSignal contract for privileged `orchestrate` administration: dynamic role
-creation, repository-index refresh, and exact registry-maintenance vocabulary.
+MetaSignal contract for the privileged `orchestrate` repository-index refresh.
 
-Ordinary claim/release/handoff/activity messages live in `signal-orchestrate`.
+Atomic path-lock registration is exclusively the ordinary
+`signal-orchestrate` contract, using its native Datom `PathLock` carrier. This
+crate has no PathLock request, response, or compatibility type.
 
-`ForceRemoveRegistryRow` selects one of twelve closed durable-row identities
-and never authorizes filesystem or Jujutsu removal.
-
-The local closed types are stated by the role-free
-`schema/authority.ethos` Interface and admitted through the strict authority →
-Core Nomos → Whole Logos → Rust Logos bootstrap. Ordinary orchestration nouns
-come directly from `signal-orchestrate`; this crate does not mirror them.
+The local closed type is stated by `schema/authority.ethos` and admitted through
+the strict authority → Core Nomos → Whole Logos → Rust Logos bootstrap.

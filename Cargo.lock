@@ -136,7 +136,7 @@ dependencies = [
  "content-identity 0.5.0",
  "name-table 0.1.0",
  "name-table 0.3.0",
- "protos",
+ "protos 0.5.1",
  "raw-discovery",
  "rkyv",
  "signal-sema-translator",
@@ -166,22 +166,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "dotos"
-version = "0.10.0"
-source = "git+https://github.com/LiGoldragon/dotos.git?rev=80c7b17f7ad3cf547d2624c6a243e5de5f85c9f3#80c7b17f7ad3cf547d2624c6a243e5de5f85c9f3"
+name = "datom"
+version = "0.2.0"
+source = "git+https://github.com/LiGoldragon/datom.git?rev=1b60b0c864ab96a82c307def27aae4d466ef0ec4#1b60b0c864ab96a82c307def27aae4d466ef0ec4"
 dependencies = [
- "dotos-derive",
- "rkyv",
-]
-
-[[package]]
-name = "dotos-derive"
-version = "0.5.0"
-source = "git+https://github.com/LiGoldragon/dotos.git?rev=80c7b17f7ad3cf547d2624c6a243e5de5f85c9f3#80c7b17f7ad3cf547d2624c6a243e5de5f85c9f3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
+ "protos 0.6.0",
 ]
 
 [[package]]
@@ -256,10 +245,9 @@ checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "meta-signal-orchestrate"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "core-ethos",
- "dotos",
  "name-table 0.3.0",
  "rkyv",
  "rust-logos",
@@ -358,6 +346,11 @@ dependencies = [
  "rkyv",
  "signal-frame",
 ]
+
+[[package]]
+name = "protos"
+version = "0.6.0"
+source = "git+https://github.com/LiGoldragon/protos?rev=bfea114c96eb548ceae17ab05da9c231a6412ba1#bfea114c96eb548ceae17ab05da9c231a6412ba1"
 
 [[package]]
 name = "ptr_meta"
@@ -503,22 +496,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
-name = "signal-criome"
-version = "0.14.0"
-source = "git+https://github.com/LiGoldragon/signal-criome.git?rev=39d110c1fcd8d405823e7e565d23014177e10f17#39d110c1fcd8d405823e7e565d23014177e10f17"
-dependencies = [
- "dotos",
- "rkyv",
- "signal-frame",
- "thiserror",
-]
-
-[[package]]
 name = "signal-frame"
 version = "0.3.1"
 source = "git+https://github.com/LiGoldragon/signal-frame.git?rev=8aa0bcaeb29fe9e461a11706a469638d2fd109ac#8aa0bcaeb29fe9e461a11706a469638d2fd109ac"
 dependencies = [
- "dotos",
  "paste",
  "rkyv",
  "signal-frame-macros",
@@ -536,64 +517,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "signal-harness"
-version = "0.5.1"
-source = "git+https://github.com/LiGoldragon/signal-harness.git?rev=cdfd4e3cd9bba8d8fab3e1d2f65490639db0069c#cdfd4e3cd9bba8d8fab3e1d2f65490639db0069c"
-dependencies = [
- "dotos",
- "rkyv",
- "signal-frame",
- "signal-persona",
- "thiserror",
-]
-
-[[package]]
 name = "signal-orchestrate"
-version = "0.13.0"
-source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?rev=936d73fcaa073b55661866a896b84388a7da101e#936d73fcaa073b55661866a896b84388a7da101e"
+version = "0.14.0"
+source = "git+https://github.com/LiGoldragon/signal-orchestrate.git?rev=52c43ed0ed165a04fe0d77a4a9ee103c903f9d5c#52c43ed0ed165a04fe0d77a4a9ee103c903f9d5c"
 dependencies = [
- "core-ethos",
- "dotos",
- "name-table 0.3.0",
+ "datom",
  "rkyv",
- "rust-logos",
- "schema-rust",
- "sema-translator",
- "signal-criome",
  "signal-frame",
- "signal-harness",
- "signal-orchestrator-message",
- "signal-sema-translator",
- "structural-codec",
- "thiserror",
-]
-
-[[package]]
-name = "signal-orchestrator-message"
-version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/signal-orchestrator-message.git?rev=f2480bbe5486d1e1c168da684a99dec47887fa97#f2480bbe5486d1e1c168da684a99dec47887fa97"
-dependencies = [
- "dotos",
- "rkyv",
- "thiserror",
-]
-
-[[package]]
-name = "signal-persona"
-version = "0.3.1"
-source = "git+https://github.com/LiGoldragon/signal-persona.git?rev=0baf90c8c7da11330b5e220a2a00665272ad93b3#0baf90c8c7da11330b5e220a2a00665272ad93b3"
-dependencies = [
- "core-ethos",
- "dotos",
- "name-table 0.3.0",
- "rkyv",
- "rust-logos",
- "schema-rust",
- "sema-translator",
- "signal-frame",
- "signal-sema-translator",
- "structural-codec",
- "thiserror",
 ]
 
 [[package]]
@@ -603,7 +533,7 @@ source = "git+https://github.com/LiGoldragon/signal-sema-translator.git?rev=3f41
 dependencies = [
  "blake3",
  "name-table 0.3.0",
- "protos",
+ "protos 0.5.1",
  "rkyv",
  "signal-frame",
  "thiserror",
