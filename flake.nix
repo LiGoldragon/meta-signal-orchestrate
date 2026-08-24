@@ -1,5 +1,5 @@
 {
-  description = "meta-signal-orchestrate - MetaSignal contract for orchestrate administration";
+  description = "meta-signal-orchestrate - generated MetaSignal Configure contract";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -46,11 +46,11 @@
         checks = {
           build = craneLib.cargoBuild (commonArgs // { inherit cargoArtifacts; });
           test = craneLib.cargoTest (commonArgs // { inherit cargoArtifacts; });
-          test-round-trip = craneLib.cargoTest (
+          test-generated-contract = craneLib.cargoTest (
             commonArgs
             // {
               inherit cargoArtifacts;
-              cargoTestExtraArgs = "--test round_trip";
+              cargoTestExtraArgs = "--test generated_contract";
             }
           );
           doc = craneLib.cargoDoc (

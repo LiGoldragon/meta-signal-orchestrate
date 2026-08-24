@@ -1,14 +1,22 @@
 # meta-signal-orchestrate
 
-MetaSignal contract for privileged `orchestrate` administration: dynamic role
-creation, repository-index refresh, and exact registry-maintenance vocabulary.
+The generated MetaSignal wire contract for privileged Orchestrate
+configuration. Its source of truth is the three-file Ethos component in
+`ethos/`; `build.rs` uses `ethos-monolith` to regenerate committed Rust modules
+in `src/generated/`.
 
-Ordinary claim/release/handoff/activity messages live in `signal-orchestrate`.
+The meta channel has ContractId 2 and WireRevision 3. It carries the closed
+surface:
 
-`ForceRemoveRegistryRow` selects one of twelve closed durable-row identities
-and never authorizes filesystem or Jujutsu removal.
+- `MetaOrchestrateRequest::Configure(Configure)`.
+- `MetaOrchestrateReply::{Configured, ConfigurationRejected}`.
 
-The local closed types are stated by the role-free
-`schema/authority.ethos` Interface and admitted through the strict authority →
-Core Nomos → Whole Logos → Rust Logos bootstrap. Ordinary orchestration nouns
-come directly from `signal-orchestrate`; this crate does not mirror them.
+The concrete textual input is:
+
+```text
+Configure.{/tmp/orchestrate.redb /tmp/orchestrate.sock /tmp/meta-orchestrate.sock}
+```
+
+`Frame` is generated alongside the source-owned `MetaOrchestrateWire` binding
+and is the binary transport contract. This crate owns neither daemon startup,
+persistence, socket rebinding, nor CLI argument parsing.
