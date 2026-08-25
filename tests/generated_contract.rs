@@ -9,6 +9,20 @@ use signal_frame::{
 };
 
 #[test]
+fn build_generates_only_in_cargo_out_dir_and_checks_committed_projection() {
+    let build = include_str!("../build.rs");
+
+    assert!(build.contains("env::var_os(\"OUT_DIR\")"));
+    assert!(build.contains("ComponentGeneration::new(root.join(\"ethos\"), &generated_directory)"));
+    assert!(build.contains("fs::read(root.join(\"src/generated\").join(module))"));
+    assert!(
+        !build.contains(
+            "ComponentGeneration::new(root.join(\"ethos\"), root.join(\"src/generated\"))"
+        )
+    );
+}
+
+#[test]
 fn generated_contract_textualizes_configure() {
     assert_eq!(MetaOrchestrateWire::BINDING.contract().value(), 2);
     assert_eq!(MetaOrchestrateWire::BINDING.revision().value(), 3);
