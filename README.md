@@ -1,9 +1,9 @@
 # meta-signal-orchestrate
 
 The generated MetaSignal wire contract for privileged Orchestrate
-configuration. Its source of truth is the three-file Ethos component in
-`ethos/`; `build.rs` uses `ethos-monolith` to regenerate committed Rust modules
-in `src/generated/`.
+configuration. Its source of truth is `ethos/signal.ethos`; `build.rs` uses
+`ethos-monolith` to regenerate the committed `src/generated/signal.rs`
+projection.
 
 The meta channel has ContractId 2 and WireRevision 3. It carries the closed
 surface:

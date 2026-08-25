@@ -28,11 +28,13 @@
         inherit (rust) craneLib toolchain;
         examplesFilter = path: _type: builtins.match ".*/examples(/.*)?$" path != null;
         ethosFilter = path: type: type == "regular" && pkgs.lib.hasSuffix ".ethos" path;
+        wireFixtureFilter = path: type: type == "regular" && pkgs.lib.hasSuffix ".bytes" path;
         src = rust.cleanSource {
           root = ./.;
           extraFilters = [
             examplesFilter
             ethosFilter
+            wireFixtureFilter
           ];
         };
         commonArgs = {

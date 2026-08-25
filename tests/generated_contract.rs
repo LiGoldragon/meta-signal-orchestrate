@@ -8,18 +8,11 @@ use signal_frame::{
     WireContract,
 };
 
-#[test]
-fn build_generates_only_in_cargo_out_dir_and_checks_committed_projection() {
-    let build = include_str!("../build.rs");
-
-    assert!(build.contains("env::var_os(\"OUT_DIR\")"));
-    assert!(build.contains("ComponentGeneration::new(root.join(\"ethos\"), &generated_directory)"));
-    assert!(build.contains("fs::read(root.join(\"src/generated\").join(module))"));
-    assert!(
-        !build.contains(
-            "ComponentGeneration::new(root.join(\"ethos\"), root.join(\"src/generated\"))"
-        )
-    );
+fn wire_fixture(source: &str) -> Vec<u8> {
+    source
+        .split_ascii_whitespace()
+        .map(|byte| byte.parse().expect("decimal wire byte"))
+        .collect()
 }
 
 #[test]
@@ -74,5 +67,32 @@ fn generated_contract_textualizes_configure() {
     assert_eq!(
         Frame::decode_client_frame(&bytes).expect("decode configure frame"),
         frame
+    );
+}
+
+#[test]
+fn generated_contract_preserves_configure_wire_bytes() {
+    let configure = Frame::request_frame(
+        ExchangeIdentifier::new(
+            SessionEpoch::new(42),
+            ExchangeLane::Connector,
+            LaneSequence::first(),
+        ),
+        MetaOrchestrateRequest::Configure(Configure {
+            store_path: StorePath("/tmp/orchestrate-wire-byte-fixture.sema".into()),
+            ordinary_socket_path: OrdinarySocketPath(
+                "/tmp/orchestrate-wire-byte-fixture.sock".into(),
+            ),
+            meta_socket_path: MetaSocketPath("/tmp/meta-orchestrate-wire-byte-fixture.sock".into()),
+        })
+        .into_request(),
+    )
+    .expect("frame configure")
+    .encode_client_frame()
+    .expect("encode configure frame");
+
+    assert_eq!(
+        configure,
+        wire_fixture(include_str!("fixtures/configure-wire.bytes"))
     );
 }
