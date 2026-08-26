@@ -1,7 +1,7 @@
 use dotos::{DotosEncode, DotosSource};
 use meta_signal_orchestrate::{
     ConfigurationRefusal, ConfigurationRejected, Configure, Configured, Frame,
-    MetaOrchestrateRequest, MetaOrchestrateWire, MetaSocketPath, OrdinarySocketPath, StorePath,
+    MetaOrchestrateRequest, MetaOrchestrateWire, MetaSocketPath, OrdinarySocketPath,
 };
 use signal_frame::{
     ClientFrame, ExchangeIdentifier, ExchangeLane, LaneSequence, RequestPayload, SessionEpoch,
@@ -18,9 +18,8 @@ fn wire_fixture(source: &str) -> Vec<u8> {
 #[test]
 fn generated_contract_textualizes_configure() {
     assert_eq!(MetaOrchestrateWire::BINDING.contract().value(), 2);
-    assert_eq!(MetaOrchestrateWire::BINDING.revision().value(), 3);
+    assert_eq!(MetaOrchestrateWire::BINDING.revision().value(), 4);
     let configure_payload = Configure {
-        store_path: StorePath("/tmp/orchestrate.redb".into()),
         ordinary_socket_path: OrdinarySocketPath("/tmp/orchestrate.sock".into()),
         meta_socket_path: MetaSocketPath("/tmp/meta-orchestrate.sock".into()),
     };
@@ -30,20 +29,20 @@ fn generated_contract_textualizes_configure() {
     };
     let rejected = ConfigurationRejected {
         configure: configure_payload.clone(),
-        configuration_refusal: ConfigurationRefusal::StorePathImmutable,
+        configuration_refusal: ConfigurationRefusal::InvalidConfiguration,
     };
 
     assert_eq!(
         configure_payload.to_dotos(),
-        "Configure.{/tmp/orchestrate.redb /tmp/orchestrate.sock /tmp/meta-orchestrate.sock}"
+        "Configure.{/tmp/orchestrate.sock /tmp/meta-orchestrate.sock}"
     );
     assert_eq!(
         configured.to_dotos(),
-        "Configured.{/tmp/orchestrate.redb /tmp/orchestrate.sock /tmp/meta-orchestrate.sock}"
+        "Configured.{/tmp/orchestrate.sock /tmp/meta-orchestrate.sock}"
     );
     assert_eq!(
         rejected.to_dotos(),
-        "ConfigurationRejected.{{/tmp/orchestrate.redb /tmp/orchestrate.sock /tmp/meta-orchestrate.sock} StorePathImmutable}"
+        "ConfigurationRejected.{{/tmp/orchestrate.sock /tmp/meta-orchestrate.sock} InvalidConfiguration}"
     );
     assert_eq!(
         DotosSource::new(&configure_payload.to_dotos())
@@ -79,7 +78,6 @@ fn generated_contract_preserves_configure_wire_bytes() {
             LaneSequence::first(),
         ),
         MetaOrchestrateRequest::Configure(Configure {
-            store_path: StorePath("/tmp/orchestrate-wire-byte-fixture.sema".into()),
             ordinary_socket_path: OrdinarySocketPath(
                 "/tmp/orchestrate-wire-byte-fixture.sock".into(),
             ),

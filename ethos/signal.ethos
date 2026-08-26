@@ -1,5 +1,5 @@
 Interface.{0 1 0}
-Channel.{MetaOrchestrate 2 3}
+Channel.{MetaOrchestrate 2 4}
 []
 {
   [Configure.Configure]
@@ -7,11 +7,10 @@ Channel.{MetaOrchestrate 2 3}
   []
   []
   [
-    StorePath.String
     OrdinarySocketPath.String
     MetaSocketPath.String
-    Configure.{StorePath OrdinarySocketPath MetaSocketPath}
-    ConfigurationRefusal.[StorePathImmutable InvalidConfiguration]
+    Configure.{OrdinarySocketPath MetaSocketPath}
+    ConfigurationRefusal.[InvalidConfiguration]
     Configured.{Configure}
     ConfigurationRejected.{Configure ConfigurationRefusal}
   ]

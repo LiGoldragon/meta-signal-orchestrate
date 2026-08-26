@@ -5,7 +5,7 @@ configuration. Its source of truth is `ethos/signal.ethos`; `build.rs` uses
 `ethos-monolith` to regenerate the committed `src/generated/signal.rs`
 projection.
 
-The meta channel has ContractId 2 and WireRevision 3. It carries the closed
+The meta channel has ContractId 2 and WireRevision 4. It carries the closed
 surface:
 
 - `MetaOrchestrateRequest::Configure(Configure)`.
@@ -14,7 +14,7 @@ surface:
 The concrete textual input is:
 
 ```text
-Configure.{/tmp/orchestrate.redb /tmp/orchestrate.sock /tmp/meta-orchestrate.sock}
+Configure.{/tmp/orchestrate.sock /tmp/meta-orchestrate.sock}
 ```
 
 `Frame` is generated alongside the source-owned `MetaOrchestrateWire` binding

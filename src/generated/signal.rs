@@ -10,7 +10,7 @@ pub enum MetaOrchestrateWire {}
 impl WireContract for MetaOrchestrateWire {
     const BINDING: ContractBinding = ContractBinding::new(
         ContractId::new(NonZeroU32::new(2).expect("Ethos Channel contract id is nonzero")),
-        WireRevision::new(NonZeroU16::new(3).expect("Ethos Channel wire revision is nonzero")),
+        WireRevision::new(NonZeroU16::new(4).expect("Ethos Channel wire revision is nonzero")),
     );
 }
 
@@ -61,69 +61,6 @@ where
 {
     fn from_ethos_value(block: &::dotos::Block) -> Result<Self, ::dotos::DotosDecodeError> {
         ::dotos::DotosCollection::new(block).parse_vector(EthosValueDecoding::from_ethos_value)
-    }
-}
-
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
-pub struct StorePath(pub String);
-
-impl EthosValueEncoding for StorePath {
-    fn to_ethos_value(&self) -> String {
-        <String as EthosValueEncoding>::to_ethos_value(&self.0)
-    }
-}
-
-impl EthosValueDecoding for StorePath {
-    fn from_ethos_value(block: &::dotos::Block) -> Result<Self, ::dotos::DotosDecodeError> {
-        Ok(Self(<String as EthosValueDecoding>::from_ethos_value(
-            block,
-        )?))
-    }
-}
-
-impl ::dotos::DotosEncode for StorePath {
-    fn to_dotos(&self) -> String {
-        format!(
-            "StorePath.{}",
-            <Self as EthosValueEncoding>::to_ethos_value(self)
-        )
-    }
-}
-
-impl ::dotos::DotosDecode for StorePath {
-    fn from_dotos_block(block: &::dotos::Block) -> Result<Self, ::dotos::DotosDecodeError> {
-        let (head, payload) =
-            block
-                .as_application()
-                .ok_or(::dotos::DotosDecodeError::ExpectedDelimited {
-                    type_name: "StorePath",
-                    delimiter: "named dotted application",
-                })?;
-        let head = head
-            .demote_to_string()
-            .ok_or(::dotos::DotosDecodeError::ExpectedAtom {
-                type_name: "named type head",
-            })?;
-        if head != "StorePath" {
-            return Err(::dotos::DotosDecodeError::UnknownVariant {
-                enum_name: "StorePath",
-                variant: head.to_owned(),
-            });
-        }
-        <Self as EthosValueDecoding>::from_ethos_value(payload)
-    }
-}
-
-impl ::dotos::DotosBodyEncode for StorePath {
-    fn to_dotos_body(&self) -> ::dotos::DotosBodyEncoding {
-        ::dotos::DotosBodyEncoding::new(vec![::dotos::DotosEncode::to_dotos(self)])
-    }
-}
-
-impl ::dotos::DotosBodyDecode for StorePath {
-    fn from_dotos_body(body: &::dotos::DotosBody<'_>) -> Result<Self, ::dotos::DotosDecodeError> {
-        let fields = body.expect_fields("StorePath", 1)?;
-        <Self as ::dotos::DotosDecode>::from_dotos_block(&fields[0])
     }
 }
 
@@ -255,7 +192,6 @@ impl ::dotos::DotosBodyDecode for MetaSocketPath {
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Configure {
-    pub store_path: StorePath,
     pub ordinary_socket_path: OrdinarySocketPath,
     pub meta_socket_path: MetaSocketPath,
 }
@@ -278,7 +214,6 @@ impl EthosValueDecoding for Configure {
 impl ::dotos::DotosBodyEncode for Configure {
     fn to_dotos_body(&self) -> ::dotos::DotosBodyEncoding {
         ::dotos::DotosBodyEncoding::new(vec![
-            EthosValueEncoding::to_ethos_value(&self.store_path),
             EthosValueEncoding::to_ethos_value(&self.ordinary_socket_path),
             EthosValueEncoding::to_ethos_value(&self.meta_socket_path),
         ])
@@ -321,27 +256,24 @@ impl ::dotos::DotosDecode for Configure {
 
 impl ::dotos::DotosBodyDecode for Configure {
     fn from_dotos_body(body: &::dotos::DotosBody<'_>) -> Result<Self, ::dotos::DotosDecodeError> {
-        let fields = body.expect_fields("Configure", 3)?;
+        let fields = body.expect_fields("Configure", 2)?;
         Ok(Self {
-            store_path: <StorePath as EthosValueDecoding>::from_ethos_value(&fields[0])?,
             ordinary_socket_path: <OrdinarySocketPath as EthosValueDecoding>::from_ethos_value(
-                &fields[1],
+                &fields[0],
             )?,
-            meta_socket_path: <MetaSocketPath as EthosValueDecoding>::from_ethos_value(&fields[2])?,
+            meta_socket_path: <MetaSocketPath as EthosValueDecoding>::from_ethos_value(&fields[1])?,
         })
     }
 }
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
 pub enum ConfigurationRefusal {
-    StorePathImmutable,
     InvalidConfiguration,
 }
 
 impl EthosValueEncoding for ConfigurationRefusal {
     fn to_ethos_value(&self) -> String {
         match self {
-            Self::StorePathImmutable => "StorePathImmutable".to_owned(),
             Self::InvalidConfiguration => "InvalidConfiguration".to_owned(),
         }
     }
@@ -351,7 +283,6 @@ impl EthosValueDecoding for ConfigurationRefusal {
     fn from_ethos_value(block: &::dotos::Block) -> Result<Self, ::dotos::DotosDecodeError> {
         if let Some(variant) = block.atom().map(|atom| atom.text()) {
             return match variant {
-                "StorePathImmutable" => Ok(Self::StorePathImmutable),
                 "InvalidConfiguration" => Ok(Self::InvalidConfiguration),
                 other => Err(::dotos::DotosDecodeError::UnknownVariant {
                     enum_name: "ConfigurationRefusal",
