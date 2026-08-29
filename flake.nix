@@ -40,6 +40,7 @@
         commonArgs = {
           inherit src;
           strictDeps = true;
+          nativeBuildInputs = [ pkgs.rustfmt ];
         };
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
       in

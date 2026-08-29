@@ -1,10 +1,10 @@
-Interface.{0 1 0}
-Channel.{MetaOrchestrate 2 4}
+Interface.{0 2 0}
+Channel.{MetaOrchestrate 2 5}
 []
 {
   [Configure.Configure]
-  [Configured.Configured ConfigurationRejected.ConfigurationRejected]
-  []
+  [Configured.Configured]
+  [ConfigurationRejected.ConfigurationRejected]
   []
   [
     OrdinarySocketPath.String
