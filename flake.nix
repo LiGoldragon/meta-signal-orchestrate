@@ -53,7 +53,7 @@
             commonArgs
             // {
               inherit cargoArtifacts;
-              cargoTestExtraArgs = "--test generated_contract";
+              cargoTestExtraArgs = "--test contract";
             }
           );
           doc = craneLib.cargoDoc (
