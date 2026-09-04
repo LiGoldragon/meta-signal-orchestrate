@@ -38,7 +38,7 @@ impl datomic::Datomic for Configure {
         ])
     }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConfigurationRefusal {
     InvalidConfiguration,
 }
