@@ -2,15 +2,19 @@
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Configure(pub protos::Text, pub protos::Text);
-impl protos::Corporal<datomic::Datom> for Configure {
+impl datomic::Corporal<datomic::Datom> for Configure {
     type Fault = datomic::Fault;
-    fn incorporate(datom: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match datom {
+    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
+        match concept {
             datomic::Datom::Struct(fields) if fields.len() == 2usize => {
                 let mut iter = fields.into_iter();
                 Ok(Self(
-                    <protos::Text as protos::Corporal<datomic::Datom>>::incorporate(iter.next().unwrap())?,
-                    <protos::Text as protos::Corporal<datomic::Datom>>::incorporate(iter.next().unwrap())?,
+                    <protos::Text as datomic::Corporal<datomic::Datom>>::incorporate(
+                        iter.next().unwrap(),
+                    )?,
+                    <protos::Text as datomic::Corporal<datomic::Datom>>::incorporate(
+                        iter.next().unwrap(),
+                    )?,
                 ))
             }
             datomic::Datom::Struct(fields) => Err(datomic::Fault::Corporal(
@@ -24,7 +28,6 @@ impl protos::Corporal<datomic::Datom> for Configure {
         }
     }
 }
-
 impl datomic::Datomic for Configure {
     fn datomize(&self) -> datomic::Datom {
         datomic::Datom::Struct(vec![
@@ -37,10 +40,10 @@ impl datomic::Datomic for Configure {
 pub enum ConfigurationRefusal {
     InvalidConfiguration,
 }
-impl protos::Corporal<datomic::Datom> for ConfigurationRefusal {
+impl datomic::Corporal<datomic::Datom> for ConfigurationRefusal {
     type Fault = datomic::Fault;
-    fn incorporate(datom: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match datom {
+    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
+        match concept {
             datomic::Datom::Bare(s) if s == stringify!(InvalidConfiguration) => {
                 Ok(Self::InvalidConfiguration)
             }
@@ -51,7 +54,6 @@ impl protos::Corporal<datomic::Datom> for ConfigurationRefusal {
         }
     }
 }
-
 impl datomic::Datomic for ConfigurationRefusal {
     fn datomize(&self) -> datomic::Datom {
         match self {
@@ -63,15 +65,19 @@ impl datomic::Datomic for ConfigurationRefusal {
 }
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ConfigurationRejection(pub Configure, pub ConfigurationRefusal);
-impl protos::Corporal<datomic::Datom> for ConfigurationRejection {
+impl datomic::Corporal<datomic::Datom> for ConfigurationRejection {
     type Fault = datomic::Fault;
-    fn incorporate(datom: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match datom {
+    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
+        match concept {
             datomic::Datom::Struct(fields) if fields.len() == 2usize => {
                 let mut iter = fields.into_iter();
                 Ok(Self(
-                    <Configure as protos::Corporal<datomic::Datom>>::incorporate(iter.next().unwrap())?,
-                    <ConfigurationRefusal as protos::Corporal<datomic::Datom>>::incorporate(iter.next().unwrap())?,
+                    <Configure as datomic::Corporal<datomic::Datom>>::incorporate(
+                        iter.next().unwrap(),
+                    )?,
+                    <ConfigurationRefusal as datomic::Corporal<datomic::Datom>>::incorporate(
+                        iter.next().unwrap(),
+                    )?,
                 ))
             }
             datomic::Datom::Struct(fields) => Err(datomic::Fault::Corporal(
@@ -85,7 +91,6 @@ impl protos::Corporal<datomic::Datom> for ConfigurationRejection {
         }
     }
 }
-
 impl datomic::Datomic for ConfigurationRejection {
     fn datomize(&self) -> datomic::Datom {
         datomic::Datom::Struct(vec![
@@ -98,16 +103,16 @@ impl datomic::Datomic for ConfigurationRejection {
 pub enum Request {
     Configure(Configure),
 }
-impl protos::Corporal<datomic::Datom> for Request {
+impl datomic::Corporal<datomic::Datom> for Request {
     type Fault = datomic::Fault;
-    fn incorporate(datom: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match datom {
+    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
+        match concept {
             datomic::Datom::Variant(head, protos::Separator::Period, Some(body))
                 if head == stringify!(Configure) =>
             {
-                Ok(Self::Configure(
-                    <Configure as protos::Corporal<datomic::Datom>>::incorporate(*body)?,
-                ))
+                Ok(Self::Configure(<Configure as datomic::Corporal<
+                    datomic::Datom,
+                >>::incorporate(*body)?))
             }
             other => Err(datomic::Fault::Corporal(
                 vec![],
@@ -116,7 +121,6 @@ impl protos::Corporal<datomic::Datom> for Request {
         }
     }
 }
-
 impl datomic::Datomic for Request {
     fn datomize(&self) -> datomic::Datom {
         match self {
@@ -133,22 +137,24 @@ pub enum Reply {
     Configured(Configure),
     ConfigurationRejected(ConfigurationRejection),
 }
-impl protos::Corporal<datomic::Datom> for Reply {
+impl datomic::Corporal<datomic::Datom> for Reply {
     type Fault = datomic::Fault;
-    fn incorporate(datom: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match datom {
+    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
+        match concept {
             datomic::Datom::Variant(head, protos::Separator::Period, Some(body))
                 if head == stringify!(Configured) =>
             {
-                Ok(Self::Configured(
-                    <Configure as protos::Corporal<datomic::Datom>>::incorporate(*body)?,
-                ))
+                Ok(Self::Configured(<Configure as datomic::Corporal<
+                    datomic::Datom,
+                >>::incorporate(*body)?))
             }
             datomic::Datom::Variant(head, protos::Separator::Period, Some(body))
                 if head == stringify!(ConfigurationRejected) =>
             {
                 Ok(Self::ConfigurationRejected(
-                    <ConfigurationRejection as protos::Corporal<datomic::Datom>>::incorporate(*body)?,
+                    <ConfigurationRejection as datomic::Corporal<datomic::Datom>>::incorporate(
+                        *body,
+                    )?,
                 ))
             }
             other => Err(datomic::Fault::Corporal(
@@ -158,7 +164,6 @@ impl protos::Corporal<datomic::Datom> for Reply {
         }
     }
 }
-
 impl datomic::Datomic for Reply {
     fn datomize(&self) -> datomic::Datom {
         match self {
