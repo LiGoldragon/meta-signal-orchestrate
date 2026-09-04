@@ -1,17 +1,22 @@
-Interface.{0 2 0}
-Channel.{MetaOrchestrate 2 5}
+; Orchestrate meta signal — the privileged wire contract.
+;
+; Configuration: set socket paths for the Nexus.
+;
+; Target Rust:
+;   pub struct Configure(pub protos::Text, pub protos::Text);
+;   pub enum ConfigurationRefusal { InvalidConfiguration }
+;   pub struct ConfigurationRejection(pub Configure, pub ConfigurationRefusal);
+;   pub enum Request { Configure(Configure) }
+;   pub enum Reply { Configured(Configure), ConfigurationRejected(ConfigurationRejection) }
+
+Signal.{ 1 0 0 }
+
 []
-{
-  [Configure.Configure]
-  [Configured.Configured]
-  [ConfigurationRejected.ConfigurationRejected]
-  []
-  [
-    OrdinarySocketPath.String
-    MetaSocketPath.String
-    Configure.{OrdinarySocketPath MetaSocketPath}
-    ConfigurationRefusal.[InvalidConfiguration]
-    Configured.{Configure}
-    ConfigurationRejected.{Configure ConfigurationRefusal}
-  ]
-}
+
+[ Configure.Configure ]
+
+[ Configured.Configure  ConfigurationRejected.ConfigurationRejection ]
+
+[ Configure.{ Text Text }
+  ConfigurationRefusal.[ InvalidConfiguration ]
+  ConfigurationRejection.{ Configure ConfigurationRefusal } ]
