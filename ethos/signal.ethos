@@ -2,7 +2,7 @@
 ;
 ; Configuration: set socket paths for the Nexus.
 
-Signal.{ 1 0 0 }
+Signal
 
 []
 

@@ -1,61 +1,62 @@
-use datomic::Textualizable;
+use datom_codec::{Actualizable, IncorporationBudget, Potential, Textualizable};
 use meta_signal_orchestrate::*;
+use protos::Text;
+
+fn text(value: &str) -> Text {
+    value.try_into().expect("fixture text")
+}
 
 fn configure() -> Configure {
     Configure(
-        "/tmp/orchestrate.sock".to_owned(),
-        "/tmp/meta-orchestrate.sock".to_owned(),
+        text("/tmp/orchestrate.sock"),
+        text("/tmp/meta-orchestrate.sock"),
     )
+}
+
+fn assert_datom_round_trip<T>(value: T, expected: &str)
+where
+    T: datom_codec::Datomic
+        + Textualizable<datom_codec::Datom>
+        + Clone
+        + std::fmt::Debug
+        + PartialEq,
+{
+    let rendered = <T as Textualizable<datom_codec::Datom>>::textualize(&value);
+    assert_eq!(rendered, expected);
+    let decoded = Potential::<T>::from(rendered)
+        .actualize(IncorporationBudget::try_from(1_024).expect("fixed positive budget"))
+        .expect("round-trip actualize");
+    assert_eq!(decoded, value);
 }
 
 #[test]
 fn all_meta_datom_roots_round_trip() {
-    // Request
-    let req = Request::Configure(configure());
-    let text = req.textualize();
-    assert_eq!(
-        text,
-        "Configure.{ /tmp/orchestrate.sock /tmp/meta-orchestrate.sock }"
+    assert_datom_round_trip(
+        Request::Configure(configure()),
+        "Configure.{ /tmp/orchestrate.sock /tmp/meta-orchestrate.sock }",
     );
-
-    // Reply Configured
-    let reply = Reply::Configured(configure());
-    let text = reply.textualize();
-    assert_eq!(
-        text,
-        "Configured.{ /tmp/orchestrate.sock /tmp/meta-orchestrate.sock }"
+    assert_datom_round_trip(
+        Response::Configured(configure()),
+        "Configured.{ /tmp/orchestrate.sock /tmp/meta-orchestrate.sock }",
     );
-
-    // Reply ConfigurationRejected
-    let rejection = Reply::ConfigurationRejected(ConfigurationRejection(
-        configure(),
-        ConfigurationRefusal::InvalidConfiguration,
-    ));
-    let text = rejection.textualize();
-    assert_eq!(
-        text,
-        "ConfigurationRejected.{ { /tmp/orchestrate.sock /tmp/meta-orchestrate.sock } InvalidConfiguration }"
+    assert_datom_round_trip(
+        Response::ConfigurationRejected(ConfigurationRejection(
+            configure(),
+            ConfigurationRefusal::InvalidConfiguration,
+        )),
+        "ConfigurationRejected.{ { /tmp/orchestrate.sock /tmp/meta-orchestrate.sock } InvalidConfiguration }",
     );
 }
 
 #[test]
-fn rkyv_frame_version_only_validation() {
-    let frame = Frame(
-        SIGNAL_VERSION,
-        Body::Request(Request::Configure(configure())),
-    );
-    let bytes = frame.encode_length_prefixed().expect("encodes");
+fn rkyv_request_wire_round_trips_and_validates_back_to_the_public_contract() {
+    let request = Request::Configure(configure());
+    let bytes = rkyv::to_bytes::<rkyv::rancor::Error>(&request.clone().into_wire())
+        .expect("request wire encodes");
+    let wire =
+        rkyv::from_bytes::<RequestWire, rkyv::rancor::Error>(&bytes).expect("request wire decodes");
     assert_eq!(
-        Frame::decode_length_prefixed(&bytes).expect("decodes"),
-        frame
+        Request::try_from_wire(wire).expect("wire validates"),
+        request
     );
-
-    let wrong = Frame(
-        Version(99, 0, 0),
-        Body::Request(Request::Configure(configure())),
-    );
-    assert!(matches!(
-        wrong.encode_length_prefixed(),
-        Err(FrameCodecError::VersionMismatch { .. })
-    ));
 }

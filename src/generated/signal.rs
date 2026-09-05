@@ -1,366 +1,312 @@
 #![allow(dead_code)]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
+#![allow(clippy::redundant_closure)]
 pub type OrdinarySocketPath = protos::Text;
 pub type MetaSocketPath = protos::Text;
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Configure(pub OrdinarySocketPath, pub MetaSocketPath);
-impl datomic::Corporal<datomic::Datom> for Configure {
-    type Fault = datomic::Fault;
-    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match concept {
-            datomic::Datom::Struct(fields) if fields.len() == 2usize => {
-                let mut iter = fields.into_iter();
-                Ok(Self(
-                    <OrdinarySocketPath as datomic::Corporal<datomic::Datom>>::incorporate(
-                        iter.next().unwrap(),
-                    )?,
-                    <MetaSocketPath as datomic::Corporal<datomic::Datom>>::incorporate(
-                        iter.next().unwrap(),
-                    )?,
-                ))
-            }
-            datomic::Datom::Struct(fields) => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Arity(2i64, fields.len() as i64),
-            )),
-            other => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Shape(datomic::Expected::Struct, other),
-            )),
-        }
+impl datom_codec::Datomic for Configure {
+    fn incorporate(site: datom_codec::Site<'_>) -> std::result::Result<Self, datom_codec::Fault> {
+        let mut p = datom_codec::Sited::positions(site, 2)?;
+        let p0: OrdinarySocketPath = datom_codec::Positional::position(&mut p)?;
+        let p1: MetaSocketPath = datom_codec::Positional::position(&mut p)?;
+        std::result::Result::Ok(Self(p0, p1))
     }
 }
-impl datomic::Datomic for Configure {
-    fn datomize(&self) -> datomic::Datom {
-        datomic::Datom::Struct(vec![
-            datomic::Datomic::datomize(&self.0),
-            datomic::Datomic::datomize(&self.1),
-        ])
+impl protos::Conceivable<datom_codec::Datom> for Configure {
+    type Fault = std::convert::Infallible;
+    fn conceive(&self) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(protos::Situated(
+            protos::Situation {
+                extent: protos::Extent(0, 0),
+                children: vec![],
+            },
+            datom_codec::Datom::Struct(vec![
+                protos::Conceivable::conceive(&self.0)
+                    .expect("infallible datom ascent")
+                    .1,
+                protos::Conceivable::conceive(&self.1)
+                    .expect("infallible datom ascent")
+                    .1,
+            ]),
+        ))
     }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConfigurationRefusal {
     InvalidConfiguration,
 }
-impl datomic::Corporal<datomic::Datom> for ConfigurationRefusal {
-    type Fault = datomic::Fault;
-    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match concept {
-            datomic::Datom::Bare(s) if s == stringify!(InvalidConfiguration) => {
-                Ok(Self::InvalidConfiguration)
+impl datom_codec::Datomic for ConfigurationRefusal {
+    fn incorporate(site: datom_codec::Site<'_>) -> std::result::Result<Self, datom_codec::Fault> {
+        let v = datom_codec::Sited::variant(site)?;
+        match v.name {
+            "InvalidConfiguration" => {
+                datom_codec::Headed::nothing(v)?;
+                std::result::Result::Ok(Self::InvalidConfiguration)
             }
-            other => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Shape(datomic::Expected::Variant, other),
+            _ => std::result::Result::Err(datom_codec::Headed::reject(
+                &v,
+                datom_codec::Problem::UnknownVariant(
+                    protos::Word::try_from(v.name).expect("variant name"),
+                ),
             )),
         }
     }
 }
-impl datomic::Datomic for ConfigurationRefusal {
-    fn datomize(&self) -> datomic::Datom {
-        match self {
-            Self::InvalidConfiguration => {
-                datomic::Datom::Bare(stringify!(InvalidConfiguration).to_owned())
-            }
-        }
+impl protos::Conceivable<datom_codec::Datom> for ConfigurationRefusal {
+    type Fault = std::convert::Infallible;
+    fn conceive(&self) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(protos::Situated(
+            protos::Situation {
+                extent: protos::Extent(0, 0),
+                children: vec![],
+            },
+            match self {
+                Self::InvalidConfiguration => datom_codec::Datom::Word(
+                    datom_codec::DatomWord::try_from(
+                        protos::Word::try_from("InvalidConfiguration").expect("static variant"),
+                    )
+                    .expect("stable variant"),
+                ),
+            },
+        ))
     }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ConfigurationRejection(pub Configure, pub ConfigurationRefusal);
-impl datomic::Corporal<datomic::Datom> for ConfigurationRejection {
-    type Fault = datomic::Fault;
-    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match concept {
-            datomic::Datom::Struct(fields) if fields.len() == 2usize => {
-                let mut iter = fields.into_iter();
-                Ok(Self(
-                    <Configure as datomic::Corporal<datomic::Datom>>::incorporate(
-                        iter.next().unwrap(),
-                    )?,
-                    <ConfigurationRefusal as datomic::Corporal<datomic::Datom>>::incorporate(
-                        iter.next().unwrap(),
-                    )?,
-                ))
-            }
-            datomic::Datom::Struct(fields) => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Arity(2i64, fields.len() as i64),
-            )),
-            other => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Shape(datomic::Expected::Struct, other),
-            )),
-        }
+impl datom_codec::Datomic for ConfigurationRejection {
+    fn incorporate(site: datom_codec::Site<'_>) -> std::result::Result<Self, datom_codec::Fault> {
+        let mut p = datom_codec::Sited::positions(site, 2)?;
+        let p0: Configure = datom_codec::Positional::position(&mut p)?;
+        let p1: ConfigurationRefusal = datom_codec::Positional::position(&mut p)?;
+        std::result::Result::Ok(Self(p0, p1))
     }
 }
-impl datomic::Datomic for ConfigurationRejection {
-    fn datomize(&self) -> datomic::Datom {
-        datomic::Datom::Struct(vec![
-            datomic::Datomic::datomize(&self.0),
-            datomic::Datomic::datomize(&self.1),
-        ])
+impl protos::Conceivable<datom_codec::Datom> for ConfigurationRejection {
+    type Fault = std::convert::Infallible;
+    fn conceive(&self) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(protos::Situated(
+            protos::Situation {
+                extent: protos::Extent(0, 0),
+                children: vec![],
+            },
+            datom_codec::Datom::Struct(vec![
+                protos::Conceivable::conceive(&self.0)
+                    .expect("infallible datom ascent")
+                    .1,
+                protos::Conceivable::conceive(&self.1)
+                    .expect("infallible datom ascent")
+                    .1,
+            ]),
+        ))
     }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Request {
     Configure(Configure),
 }
-impl datomic::Corporal<datomic::Datom> for Request {
-    type Fault = datomic::Fault;
-    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match concept {
-            datomic::Datom::Variant(head, protos::Separator::Period, Some(body))
-                if head == stringify!(Configure) =>
-            {
-                Ok(Self::Configure(<Configure as datomic::Corporal<
-                    datomic::Datom,
-                >>::incorporate(*body)?))
+impl datom_codec::Datomic for Request {
+    fn incorporate(site: datom_codec::Site<'_>) -> std::result::Result<Self, datom_codec::Fault> {
+        let v = datom_codec::Sited::variant(site)?;
+        match v.name {
+            "Configure" => {
+                std::result::Result::Ok(Self::Configure(datom_codec::Carrying::body(v)?))
             }
-            other => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Shape(datomic::Expected::Variant, other),
+            _ => std::result::Result::Err(datom_codec::Headed::reject(
+                &v,
+                datom_codec::Problem::UnknownVariant(
+                    protos::Word::try_from(v.name).expect("variant name"),
+                ),
             )),
         }
     }
 }
-impl datomic::Datomic for Request {
-    fn datomize(&self) -> datomic::Datom {
-        match self {
-            Self::Configure(value) => datomic::Datom::Variant(
-                stringify!(Configure).to_owned(),
-                protos::Separator::Period,
-                Some(Box::new(datomic::Datomic::datomize(value))),
-            ),
-        }
+impl protos::Conceivable<datom_codec::Datom> for Request {
+    type Fault = std::convert::Infallible;
+    fn conceive(&self) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(protos::Situated(
+            protos::Situation {
+                extent: protos::Extent(0, 0),
+                children: vec![],
+            },
+            match self {
+                Self::Configure(p0) => datom_codec::Datom::Variant(
+                    protos::Symbol::try_from("Configure").expect("static variant"),
+                    std::boxed::Box::new(
+                        protos::Conceivable::conceive(p0)
+                            .expect("infallible datom ascent")
+                            .1,
+                    ),
+                ),
+            },
+        ))
     }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub enum Reply {
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Response {
     Configured(Configure),
     ConfigurationRejected(ConfigurationRejection),
 }
-impl datomic::Corporal<datomic::Datom> for Reply {
-    type Fault = datomic::Fault;
-    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match concept {
-            datomic::Datom::Variant(head, protos::Separator::Period, Some(body))
-                if head == stringify!(Configured) =>
-            {
-                Ok(Self::Configured(<Configure as datomic::Corporal<
-                    datomic::Datom,
-                >>::incorporate(*body)?))
+impl datom_codec::Datomic for Response {
+    fn incorporate(site: datom_codec::Site<'_>) -> std::result::Result<Self, datom_codec::Fault> {
+        let v = datom_codec::Sited::variant(site)?;
+        match v.name {
+            "Configured" => {
+                std::result::Result::Ok(Self::Configured(datom_codec::Carrying::body(v)?))
             }
-            datomic::Datom::Variant(head, protos::Separator::Period, Some(body))
-                if head == stringify!(ConfigurationRejected) =>
-            {
-                Ok(Self::ConfigurationRejected(
-                    <ConfigurationRejection as datomic::Corporal<datomic::Datom>>::incorporate(
-                        *body,
-                    )?,
-                ))
-            }
-            other => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Shape(datomic::Expected::Variant, other),
+            "ConfigurationRejected" => std::result::Result::Ok(Self::ConfigurationRejected(
+                datom_codec::Carrying::body(v)?,
+            )),
+            _ => std::result::Result::Err(datom_codec::Headed::reject(
+                &v,
+                datom_codec::Problem::UnknownVariant(
+                    protos::Word::try_from(v.name).expect("variant name"),
+                ),
             )),
         }
     }
 }
-impl datomic::Datomic for Reply {
-    fn datomize(&self) -> datomic::Datom {
+impl protos::Conceivable<datom_codec::Datom> for Response {
+    type Fault = std::convert::Infallible;
+    fn conceive(&self) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(protos::Situated(
+            protos::Situation {
+                extent: protos::Extent(0, 0),
+                children: vec![],
+            },
+            match self {
+                Self::Configured(p0) => datom_codec::Datom::Variant(
+                    protos::Symbol::try_from("Configured").expect("static variant"),
+                    std::boxed::Box::new(
+                        protos::Conceivable::conceive(p0)
+                            .expect("infallible datom ascent")
+                            .1,
+                    ),
+                ),
+                Self::ConfigurationRejected(p0) => datom_codec::Datom::Variant(
+                    protos::Symbol::try_from("ConfigurationRejected").expect("static variant"),
+                    std::boxed::Box::new(
+                        protos::Conceivable::conceive(p0)
+                            .expect("infallible datom ascent")
+                            .1,
+                    ),
+                ),
+            },
+        ))
+    }
+}
+pub trait WireConversion: Sized {
+    type Wire;
+    fn into_wire(self) -> Self::Wire;
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault>;
+}
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum WireFault {
+    Text,
+}
+pub type OrdinarySocketPathWire = std::string::String;
+pub type MetaSocketPathWire = std::string::String;
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ConfigureWire(pub OrdinarySocketPathWire, pub MetaSocketPathWire);
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum ConfigurationRefusalWire {
+    InvalidConfiguration,
+}
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ConfigurationRejectionWire(pub ConfigureWire, pub ConfigurationRefusalWire);
+impl WireConversion for Configure {
+    type Wire = ConfigureWire;
+    fn into_wire(self) -> Self::Wire {
+        let Configure(p0, p1) = self;
+        ConfigureWire(p0.to_string(), p1.to_string())
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        let ConfigureWire(p0, p1) = wire;
+        Ok(Configure(
+            protos::Text::try_from(p0).map_err(|_| WireFault::Text)?,
+            protos::Text::try_from(p1).map_err(|_| WireFault::Text)?,
+        ))
+    }
+}
+impl WireConversion for ConfigurationRefusal {
+    type Wire = ConfigurationRefusalWire;
+    fn into_wire(self) -> Self::Wire {
         match self {
-            Self::Configured(value) => datomic::Datom::Variant(
-                stringify!(Configured).to_owned(),
-                protos::Separator::Period,
-                Some(Box::new(datomic::Datomic::datomize(value))),
-            ),
-            Self::ConfigurationRejected(value) => datomic::Datom::Variant(
-                stringify!(ConfigurationRejected).to_owned(),
-                protos::Separator::Period,
-                Some(Box::new(datomic::Datomic::datomize(value))),
-            ),
-        }
-    }
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Version(pub u16, pub u16, pub u16);
-pub const SIGNAL_VERSION: Version = Version(1u16, 0u16, 0u16);
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub enum Refusal {
-    VersionMismatch(Version, Version),
-    Unreadable,
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub enum Body {
-    Request(Request),
-    Reply(Reply),
-    Refusal(Refusal),
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct Frame(pub Version, pub Body);
-impl datomic::Corporal<datomic::Datom> for Version {
-    type Fault = datomic::Fault;
-    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match concept {
-            datomic::Datom::Struct(fields) if fields.len() == 3 => {
-                let mut it = fields.into_iter();
-                let a = <protos::Integer as datomic::Corporal<datomic::Datom>>::incorporate(
-                    it.next().unwrap(),
-                )? as u16;
-                let b = <protos::Integer as datomic::Corporal<datomic::Datom>>::incorporate(
-                    it.next().unwrap(),
-                )? as u16;
-                let c = <protos::Integer as datomic::Corporal<datomic::Datom>>::incorporate(
-                    it.next().unwrap(),
-                )? as u16;
-                Ok(Self(a, b, c))
+            ConfigurationRefusal::InvalidConfiguration => {
+                ConfigurationRefusalWire::InvalidConfiguration
             }
-            datomic::Datom::Struct(fields) => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Arity(3, fields.len() as i64),
-            )),
-            other => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Shape(datomic::Expected::Struct, other),
-            )),
         }
     }
-}
-impl datomic::Datomic for Version {
-    fn datomize(&self) -> datomic::Datom {
-        datomic::Datom::Struct(vec![
-            datomic::Datomic::datomize(&(self.0 as protos::Integer)),
-            datomic::Datomic::datomize(&(self.1 as protos::Integer)),
-            datomic::Datomic::datomize(&(self.2 as protos::Integer)),
-        ])
-    }
-}
-impl datomic::Corporal<datomic::Datom> for Refusal {
-    type Fault = datomic::Fault;
-    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match concept {
-            datomic::Datom::Variant(head, protos::Separator::Period, Some(body))
-                if head == "VersionMismatch" =>
-            {
-                match *body {
-                    datomic::Datom::Struct(fields) if fields.len() == 2 => {
-                        let mut it = fields.into_iter();
-                        Ok(Self::VersionMismatch(
-                            <Version as datomic::Corporal<datomic::Datom>>::incorporate(
-                                it.next().unwrap(),
-                            )?,
-                            <Version as datomic::Corporal<datomic::Datom>>::incorporate(
-                                it.next().unwrap(),
-                            )?,
-                        ))
-                    }
-                    other => Err(datomic::Fault::Corporal(
-                        vec![],
-                        datomic::Problem::Shape(datomic::Expected::Struct, other),
-                    )),
-                }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        match wire {
+            ConfigurationRefusalWire::InvalidConfiguration => {
+                Ok(ConfigurationRefusal::InvalidConfiguration)
             }
-            datomic::Datom::Bare(s) if s == "Unreadable" => Ok(Self::Unreadable),
-            other => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Shape(datomic::Expected::Variant, other),
-            )),
         }
     }
 }
-impl datomic::Datomic for Refusal {
-    fn datomize(&self) -> datomic::Datom {
+impl WireConversion for ConfigurationRejection {
+    type Wire = ConfigurationRejectionWire;
+    fn into_wire(self) -> Self::Wire {
+        let ConfigurationRejection(p0, p1) = self;
+        ConfigurationRejectionWire(
+            <Configure as WireConversion>::into_wire(p0),
+            <ConfigurationRefusal as WireConversion>::into_wire(p1),
+        )
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        let ConfigurationRejectionWire(p0, p1) = wire;
+        Ok(ConfigurationRejection(
+            <Configure as WireConversion>::try_from_wire(p0)?,
+            <ConfigurationRefusal as WireConversion>::try_from_wire(p1)?,
+        ))
+    }
+}
+impl WireConversion for Request {
+    type Wire = RequestWire;
+    fn into_wire(self) -> Self::Wire {
         match self {
-            Self::VersionMismatch(a, b) => datomic::Datom::Variant(
-                "VersionMismatch".to_owned(),
-                protos::Separator::Period,
-                Some(Box::new(datomic::Datom::Struct(vec![
-                    datomic::Datomic::datomize(a),
-                    datomic::Datomic::datomize(b),
-                ]))),
-            ),
-            Self::Unreadable => datomic::Datom::Bare("Unreadable".to_owned()),
+            Request::Configure(value) => {
+                RequestWire::Configure(<Configure as WireConversion>::into_wire(value))
+            }
         }
     }
-}
-impl datomic::Corporal<datomic::Datom> for Body {
-    type Fault = datomic::Fault;
-    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match concept {
-            datomic::Datom::Variant(head, protos::Separator::Period, Some(body)) => {
-                match head.as_str() {
-                    "Request" => Ok(Self::Request(<Request as datomic::Corporal<
-                        datomic::Datom,
-                    >>::incorporate(*body)?)),
-                    "Reply" => Ok(Self::Reply(
-                        <Reply as datomic::Corporal<datomic::Datom>>::incorporate(*body)?,
-                    )),
-                    "Refusal" => Ok(Self::Refusal(<Refusal as datomic::Corporal<
-                        datomic::Datom,
-                    >>::incorporate(*body)?)),
-                    _ => Err(datomic::Fault::Corporal(
-                        vec![],
-                        datomic::Problem::UnknownVariant(head),
-                    )),
-                }
-            }
-            other => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Shape(datomic::Expected::Variant, other),
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        match wire {
+            RequestWire::Configure(value) => Ok(Request::Configure(
+                <Configure as WireConversion>::try_from_wire(value)?,
             )),
         }
     }
 }
-impl datomic::Datomic for Body {
-    fn datomize(&self) -> datomic::Datom {
+impl WireConversion for Response {
+    type Wire = ResponseWire;
+    fn into_wire(self) -> Self::Wire {
         match self {
-            Self::Request(v) => datomic::Datom::Variant(
-                "Request".to_owned(),
-                protos::Separator::Period,
-                Some(Box::new(datomic::Datomic::datomize(v))),
-            ),
-            Self::Reply(v) => datomic::Datom::Variant(
-                "Reply".to_owned(),
-                protos::Separator::Period,
-                Some(Box::new(datomic::Datomic::datomize(v))),
-            ),
-            Self::Refusal(v) => datomic::Datom::Variant(
-                "Refusal".to_owned(),
-                protos::Separator::Period,
-                Some(Box::new(datomic::Datomic::datomize(v))),
-            ),
-        }
-    }
-}
-impl datomic::Corporal<datomic::Datom> for Frame {
-    type Fault = datomic::Fault;
-    fn incorporate(concept: datomic::Datom) -> std::result::Result<Self, datomic::Fault> {
-        match concept {
-            datomic::Datom::Struct(fields) if fields.len() == 2 => {
-                let mut it = fields.into_iter();
-                Ok(Self(
-                    <Version as datomic::Corporal<datomic::Datom>>::incorporate(
-                        it.next().unwrap(),
-                    )?,
-                    <Body as datomic::Corporal<datomic::Datom>>::incorporate(it.next().unwrap())?,
-                ))
+            Response::Configured(value) => {
+                ResponseWire::Configured(<Configure as WireConversion>::into_wire(value))
             }
-            datomic::Datom::Struct(fields) => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Arity(2, fields.len() as i64),
+            Response::ConfigurationRejected(value) => ResponseWire::ConfigurationRejected(
+                <ConfigurationRejection as WireConversion>::into_wire(value),
+            ),
+        }
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        match wire {
+            ResponseWire::Configured(value) => Ok(Response::Configured(
+                <Configure as WireConversion>::try_from_wire(value)?,
             )),
-            other => Err(datomic::Fault::Corporal(
-                vec![],
-                datomic::Problem::Shape(datomic::Expected::Struct, other),
+            ResponseWire::ConfigurationRejected(value) => Ok(Response::ConfigurationRejected(
+                <ConfigurationRejection as WireConversion>::try_from_wire(value)?,
             )),
         }
     }
 }
-impl datomic::Datomic for Frame {
-    fn datomize(&self) -> datomic::Datom {
-        datomic::Datom::Struct(vec![
-            datomic::Datomic::datomize(&self.0),
-            datomic::Datomic::datomize(&self.1),
-        ])
-    }
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum RequestWire {
+    Configure(ConfigureWire),
+}
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum ResponseWire {
+    Configured(ConfigureWire),
+    ConfigurationRejected(ConfigurationRejectionWire),
 }
