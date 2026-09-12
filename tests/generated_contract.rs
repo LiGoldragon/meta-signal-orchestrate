@@ -1,7 +1,7 @@
 use meta_signal_orchestrate::{
-    ByteViewable, ConfigurationRejection, ConfigurationRejectionReason, Query, Response,
-    Restorable, Signal, Signalizable,
+    ConfigurationRejection, ConfigurationRejectionReason, Query, Response,
 };
+use signal::{ByteViewable, Restorable, Signal, Signalizable};
 use signal_orchestrate::{ConfigurationReceipt, OrchestrateNexusConfiguration};
 
 fn configure() -> OrchestrateNexusConfiguration {
