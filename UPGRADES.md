@@ -50,3 +50,33 @@ signal = { git = "https://github.com/LiGoldragon/signal", rev = "626e407be520a7a
 The behavior is unchanged: the same rkyv bytes, the same validation on
 restore. `Signalizable` and `Restorable<T>` are blanket implementations now,
 so every contract type has them without the crate writing anything.
+
+---
+
+# 2.0.2 to 3.0.1 — what shipped, and the one reply that was added
+
+The released version is **3.0.1**, revision
+`707f4cb82963c02b4e6aabd4d8e17d7b7bb81da9`. There is no 3.0.0 entry above this
+one because 3.0.0 carried nothing this entry does not; 3.0.1 is its pin-only
+follow-up.
+
+**The wire changed once, additively.** `Response` gained one variant,
+`PeerRefused.PeerRejection { PeerUserId.Integer }`, so that the meta socket can
+refuse a peer the kernel reports as another user in vocabulary rather than by
+dropping the connection. Nothing else moved: every existing request, reply and
+payload encodes exactly as 2.0.2 encoded it, and a peer that is admitted never
+sees the new variant. For a Rust consumer the addition is still a break — a
+`match` over `Response` that was exhaustive no longer compiles — so a major is
+defensible on the API, though that is not why the number was chosen.
+
+**The number was chosen to match `signal`'s, not to describe this change.**
+The `nexus` skill says *"the crate's semver is the wire's semver, and consumers
+pin it"*; mirroring a dependency's number breaks that rule. The numbers are
+pushed and pinned rather than rewritten, so this entry is the correction. The
+next change takes the number its own change earns.
+
+**What a consumer of the `datom` feature must check.** The Datom projection is
+regenerated against protos `e8701521` (0.30.0), where an opaque string is
+bounded by guillemets, `«like this»`. The protos revision deployed alongside
+Orchestrate 0.30.0, `2d999f17`, bounded it with curly quotes, `“like this”`. A
+client built at this pin refuses a curly-quoted string.
