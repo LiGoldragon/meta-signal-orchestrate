@@ -1,5 +1,5 @@
 use meta_signal_orchestrate::{
-    ConfigurationRejection, ConfigurationRejectionReason, Query, Response,
+    ConfigurationRejection, ConfigurationRejectionReason, PeerRejection, Query, Response,
 };
 use signal::{ByteViewable, Restorable, Signal, Signalizable};
 use signal_orchestrate::{ConfigurationReceipt, OrchestrateNexusConfiguration};
@@ -68,4 +68,12 @@ fn query_and_response_round_trip_as_datom_text() {
         })
         .expect("restore response datom");
     assert_eq!(response_decoded, response);
+}
+
+#[test]
+fn a_refused_peer_is_vocabulary_carrying_the_user_it_refused() {
+    let response = Response::PeerRefused(PeerRejection { peer_user_id: 1001 });
+    let signal = response.signalize().expect("signalize refusal");
+    let received = Signal::<Response>::from(signal.bytes().to_vec());
+    assert_eq!(received.restore().expect("restore refusal"), response);
 }

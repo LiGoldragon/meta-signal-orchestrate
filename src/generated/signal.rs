@@ -18,6 +18,17 @@ pub struct ConfigurationRejection {
     pub configuration_rejection_reason: ConfigurationRejectionReason,
 }
 #[rustfmt::skip]
+pub type PeerUserId = i64;
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[cfg_attr(
+    feature = "datom",
+    derive(datom_codec::Datomizable, datom_codec::Compositional)
+)]
+pub struct PeerRejection {
+    pub peer_user_id: PeerUserId,
+}
+#[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
 #[cfg_attr(
     feature = "datom",
@@ -37,4 +48,5 @@ pub enum Response {
     Configured(signal_orchestrate::ConfigurationReceipt),
     OrdinaryConfigurationReopened(signal_orchestrate::ConfigurationReceipt),
     ConfigurationRejected(ConfigurationRejection),
+    PeerRefused(PeerRejection),
 }

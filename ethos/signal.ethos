@@ -3,6 +3,8 @@ Signal
 [ signal_orchestrate:[ OrchestrateNexusConfiguration ConfigurationReceipt ] ]
 [ Configure.OrchestrateNexusConfiguration ReverseMetaConfiguration ]
 [ Configured.ConfigurationReceipt OrdinaryConfigurationReopened.ConfigurationReceipt
-  ConfigurationRejected.ConfigurationRejection ]
+  ConfigurationRejected.ConfigurationRejection PeerRefused.PeerRejection ]
 [ ConfigurationRejectionReason.[ InvalidConfiguration ]
-  ConfigurationRejection.{ ConfigurationRejectionReason } ]
+  ConfigurationRejection.{ ConfigurationRejectionReason }
+  PeerUserId.Integer
+  PeerRejection.{ PeerUserId } ]
