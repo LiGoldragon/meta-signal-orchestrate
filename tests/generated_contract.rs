@@ -24,6 +24,14 @@ fn query_and_response_round_trip_through_fresh_portable_signals() {
     let response_signal = response.signalize().expect("signalize response");
     let received = Signal::<Response>::from(response_signal.bytes().to_vec());
     assert_eq!(received.restore().expect("restore response"), response);
+
+    let receipt = Response::Configured(ConfigurationReceipt {
+        orchestrate_nexus_configuration: configure(),
+        meta_configure_done: true,
+    });
+    let receipt_signal = receipt.signalize().expect("signalize receipt");
+    let received = Signal::<Response>::from(receipt_signal.bytes().to_vec());
+    assert_eq!(received.restore().expect("restore receipt"), receipt);
 }
 
 #[cfg(feature = "datom")]
