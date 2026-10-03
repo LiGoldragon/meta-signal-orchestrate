@@ -36,6 +36,12 @@
             inherit cargoArtifacts;
             cargoTestExtraArgs = "--test generated_contract";
           });
+          # The meta contract inside signal's exchange envelope: its digest,
+          # the refusal of an ordinary peer, and one Configure exchange.
+          test-exchange-envelope = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+            cargoTestExtraArgs = "--test exchange_envelope";
+          });
           test-datom-contract = craneLib.cargoTest (commonArgs // {
             inherit cargoArtifacts;
             cargoTestExtraArgs = "--features datom --test generated_contract";

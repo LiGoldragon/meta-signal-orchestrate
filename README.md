@@ -1,24 +1,20 @@
 # meta-signal-orchestrate
 
 The generated MetaSignal wire contract for privileged Orchestrate
-configuration. Its source of truth is `ethos/signal.ethos`; the `regenerate`
-example invokes Ethos-zero WireContract emission and rustfmt to produce the
-committed `src/generated/signal.rs` projection.
+configuration. Its source of truth is `ethos/signal.ethos`; ethos-zero
+13.0.0 generates the committed `src/generated/signal.rs` projection, which
+`build.rs` holds byte-identical.
 
-The meta channel has ContractId 2 and WireRevision 5. It carries closed
-Request, Reply, and Refusal roots:
+The contract rides signal 7.0.0's exchange layer. Its identity is the
+digest of `ethos/signal.ethos`, settled once per connection by the greeting
+(`Query` implements `signal::Contracted`); each query then opens one exchange,
+is answered once and ends. It carries the closed `Query` and `Response`
+roots:
 
-- `Request::Configure(Configure)`.
-- `Reply::Configured(Configured)`.
-- `Refusal::ConfigurationRejected(ConfigurationRejected)`.
+- `Query::Configure(OrchestrateNexusConfiguration)` and
+  `Query::ReverseMetaConfiguration`.
+- `Response::Configured`, `Response::OrdinaryConfigurationReopened`,
+  `Response::ConfigurationRejected` and `Response::PeerRefused`.
 
-The concrete textual input is:
-
-```text
-Configure.{/tmp/orchestrate.sock /tmp/meta-orchestrate.sock}
-```
-
-`Frame` is generated alongside protocol/channel constants. Hand-owned
-`SignalFrameCodec` length-prefixes, rkyv-validates, and checks those constants.
 This crate owns neither Nexus startup, persistence, socket rebinding, nor CLI
 argument parsing.

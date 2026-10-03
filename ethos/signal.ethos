@@ -1,4 +1,10 @@
 ; Orchestrate meta signal — the privileged configuration wire contract.
+;
+; The connection carries signal's exchange layer. A peer greets once,
+; settling this contract by the digest of this file; after that every
+; query opens an exchange the peer names, is answered with exactly one
+; frame on that exchange, and the exchange then ends. Nothing here
+; streams.
 Signal
 [ signal_orchestrate:[ OrchestrateNexusConfiguration ConfigurationReceipt ] ]
 [ Configure.OrchestrateNexusConfiguration ReverseMetaConfiguration ]

@@ -1,5 +1,30 @@
 # Upgrades
 
+## 4.0.0 — signal 7.0.0's exchange layer
+
+A clean breaking wire deployment with no compatibility path; every peer of
+the meta Orchestrate socket must be rebuilt from this revision, together with
+signal-orchestrate 4.0.0 and the orchestrate Nexus 0.36.0.
+
+Repinned: signal-orchestrate 4.0.0 `4e683453`, signal 7.0.0 `66e7b153`,
+protos 0.31.0 `1febca78`, datom-codec 0.31.0 `09e2a9d5`, ethos-zero 13.0.0
+`cf7dd128`. `src/generated/signal.rs` is regenerated: every root derives `Eq`
+and `Hash`, and `datom_codec::Composing` replaces
+`datom_codec::Compositional`.
+
+`impl signal::Contracted for Query` names `ETHOS` as the contract source, so
+the meta connection is greeted once with the digest of `ethos/signal.ethos`
+(`Dispatch::Greet`) and a query then travels as `Dispatch::Open` and is
+answered as `Delivery::Answer` followed by `Delivery::End`. The ethos text
+gained the paragraph describing that, which changes the digest; a peer built
+from 3.0.2 is refused with `ContractMismatch`, and so is an ordinary peer that
+greets the meta socket with the ordinary contract.
+
+Consumers pinned to `branch = "main"` break on their next `cargo update`.
+`mind` is one: it pins this crate by branch (its lock still holds 0.4.0) and
+must repin to a revision whose signal it speaks, or to the 3.0.2 revision
+`4279ad05`, before it next updates.
+
 ## 0.12.0 — Ethos-zero WireContract
 
 This is a clean breaking wire deployment. The contract now has interface
