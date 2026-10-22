@@ -41,7 +41,7 @@ There is no compatibility decoder.
 
 This breaks WireRevision 3. Upgrade every consumer with this contract before
 deploying it. `Configure` now carries only the ordinary and meta socket paths:
-the owning Orchestrate Nexus derives its Sema store path locally. The former
+the owning Orchestrate Nexus derives its Memory store path locally. The former
 store-path field and `StorePathImmutable` refusal are removed, with no
 compatibility decoder or migration.
 # 1.0.0 to 1.1.0
