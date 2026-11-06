@@ -46,6 +46,14 @@
             inherit cargoArtifacts;
             cargoTestExtraArgs = "--features datom --test generated_contract";
           });
+          test-representation = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+            cargoTestExtraArgs = "--test representation";
+          });
+          test-datom-representation = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+            cargoTestExtraArgs = "--features datom --test representation";
+          });
           test-doc = craneLib.cargoTest (commonArgs // {
             inherit cargoArtifacts;
             cargoTestExtraArgs = "--doc";

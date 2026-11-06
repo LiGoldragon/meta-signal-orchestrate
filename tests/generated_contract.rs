@@ -1,13 +1,17 @@
 use meta_signal_orchestrate::{
-    ConfigurationRejection, ConfigurationRejectionReason, PeerRejection, Query, Response,
+    ConfigurationRejection, ConfigurationRejectionReason, PeerRejection, PeerUserId, Query,
+    Response,
 };
 use signal::{ByteViewable, Restorable, Signal, Signalizable};
-use signal_orchestrate::{ConfigurationReceipt, OrchestrateNexusConfiguration};
+use signal_orchestrate::{
+    ConfigurationPath, ConfigurationReceipt, MetaConfigureDone, MetaSocketPath,
+    OrchestrateNexusConfiguration, OrdinarySocketPath,
+};
 
 fn configure() -> OrchestrateNexusConfiguration {
     OrchestrateNexusConfiguration {
-        ordinary_socket_path: "/tmp/orchestrate.sock".into(),
-        meta_socket_path: "/tmp/meta-orchestrate.sock".into(),
+        ordinary_socket_path: OrdinarySocketPath(ConfigurationPath("/tmp/orchestrate.sock".into())),
+        meta_socket_path: MetaSocketPath(ConfigurationPath("/tmp/meta-orchestrate.sock".into())),
     }
 }
 
@@ -27,7 +31,7 @@ fn query_and_response_round_trip_through_fresh_portable_signals() {
 
     let receipt = Response::Configured(ConfigurationReceipt {
         orchestrate_nexus_configuration: configure(),
-        meta_configure_done: true,
+        meta_configure_done: MetaConfigureDone(true),
     });
     let receipt_signal = receipt.signalize().expect("signalize receipt");
     let received = Signal::<Response>::from(receipt_signal.bytes().to_vec());
@@ -46,7 +50,7 @@ fn query_and_response_round_trip_as_datom_text() {
     let query_decoded = pending
         .actualize(&mut Budget {
             remaining: 1024,
-            reader: ReaderBudget { remaining: 1024 },
+            reader: ReaderBudget::try_from(1024usize).unwrap(),
             depth: 0,
             maximum_depth: 1024,
         })
@@ -55,14 +59,14 @@ fn query_and_response_round_trip_as_datom_text() {
 
     let response = Response::Configured(ConfigurationReceipt {
         orchestrate_nexus_configuration: configure(),
-        meta_configure_done: true,
+        meta_configure_done: MetaConfigureDone(true),
     });
     let response_text = response.clone().datomize(vec![]).protosize().textualize();
     let mut pending = Potential::<Response>::from(response_text);
     let response_decoded = pending
         .actualize(&mut Budget {
             remaining: 1024,
-            reader: ReaderBudget { remaining: 1024 },
+            reader: ReaderBudget::try_from(1024usize).unwrap(),
             depth: 0,
             maximum_depth: 1024,
         })
@@ -72,7 +76,9 @@ fn query_and_response_round_trip_as_datom_text() {
 
 #[test]
 fn a_refused_peer_is_vocabulary_carrying_the_user_it_refused() {
-    let response = Response::PeerRefused(PeerRejection { peer_user_id: 1001 });
+    let response = Response::PeerRefused(PeerRejection {
+        peer_user_id: PeerUserId(1001),
+    });
     let signal = response.signalize().expect("signalize refusal");
     let received = Signal::<Response>::from(signal.bytes().to_vec());
     assert_eq!(received.restore().expect("restore refusal"), response);

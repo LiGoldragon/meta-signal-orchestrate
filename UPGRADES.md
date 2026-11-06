@@ -1,5 +1,23 @@
 # Upgrades
 
+## 5.1.0 — signal-orchestrate 5.1.0, signal 10.3.0, protos 0.33.0, datom-codec 0.33.0, ethos-zero 19.2.0
+
+The contract selects `signal-orchestrate` 5.1.0 (`df56`), `signal` 10.3.0 (`7afb`),
+`protos` and `datom-codec` 0.33.0 (`3c7a`, `eabe`), and the build reads
+`ethos/signal.ethos` with ethos-zero 19.2.0 (`5a5d`). `ethos/signal.ethos` is
+unchanged, so the contract digest is unchanged. The archived layout and the Datom
+text are unchanged too, which `tests/representation.rs` shows for `PeerRejection`:
+it archives to the bytes, and writes the Datom text, of a mirror built from a plain
+`i64`, and text written from the mirror reads as the contract value.
+
+What changes is the Rust API. `PeerUserId` is a newtype struct in place of a type
+alias and derives ordering and `Copy`; a consumer builds it as `PeerUserId(1000)`.
+The scalars re-exported from `signal-orchestrate` are newtypes as that crate
+documents, and the greeting's `ContractDigest` and `ExchangeId` are newtypes in
+`signal` 10.3.0.
+
+Deploy in one step with `signal-orchestrate` 5.1.0.
+
 ## 5.0.0 — signal 8.0.0, signal-orchestrate 5.0.0, protos and datom-codec 0.32.2, ethos-zero 16.0.0
 
 `signal` moves to 8.0.0 `f35460de`, `signal-orchestrate` to 5.0.0

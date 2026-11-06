@@ -12,11 +12,14 @@ use signal::{
     ExchangeMinting, Exchanged, FrameCapacity, FrameReading, FrameWriting, Greeted, Handshake,
     HandshakeReceipt, HandshakeRejection, Opening, Restorable, Signal, Signalizable,
 };
-use signal_orchestrate::{ConfigurationReceipt, OrchestrateNexusConfiguration};
+use signal_orchestrate::{
+    ConfigurationPath, ConfigurationReceipt, MetaConfigureDone, MetaSocketPath,
+    OrchestrateNexusConfiguration, OrdinarySocketPath,
+};
 
 /// FNV-1a over exactly the bytes of `ethos/signal.ethos`, as a signed 64-bit
 /// integer, computed in Python from the published algorithm.
-const META_DIGEST: ContractDigest = -8_743_676_413_678_169_448;
+const META_DIGEST: ContractDigest = ContractDigest(-8_743_676_413_678_169_448);
 
 /// Put a value on a byte stream the way a socket carries it, and read it back.
 trait CrossesTheWire: Sized {
@@ -49,8 +52,12 @@ trait Configures {
 impl Configures for OrchestrateNexusConfiguration {
     fn temporary() -> Self {
         Self {
-            ordinary_socket_path: "/tmp/orchestrate.sock".into(),
-            meta_socket_path: "/tmp/orchestrate-meta.sock".into(),
+            ordinary_socket_path: OrdinarySocketPath(ConfigurationPath(
+                "/tmp/orchestrate.sock".into(),
+            )),
+            meta_socket_path: MetaSocketPath(ConfigurationPath(
+                "/tmp/orchestrate-meta.sock".into(),
+            )),
         }
     }
 }
@@ -95,7 +102,7 @@ fn a_configure_is_one_exchange_answered_once_and_then_ended() {
         exchange,
         response: Response::Configured(ConfigurationReceipt {
             orchestrate_nexus_configuration: OrchestrateNexusConfiguration::temporary(),
-            meta_configure_done: true,
+            meta_configure_done: MetaConfigureDone(true),
         }),
     });
     assert_eq!(answer.across(), answer);
