@@ -1016,6 +1016,16 @@ rec {
         };
         dependencies = [
           {
+            name = "datom-codec";
+            packageId = "datom-codec";
+            optional = true;
+          }
+          {
+            name = "protos";
+            packageId = "protos";
+            optional = true;
+          }
+          {
             name = "rkyv";
             packageId = "rkyv";
             usesDefaultFeatures = false;
@@ -1035,6 +1045,7 @@ rec {
         features = {
           "datom" = [ "dep:datom-codec" "dep:protos" ];
         };
+        resolvedDefaultFeatures = [ "datom" ];
       };
       "signal-orchestrate" = rec {
         crateName = "signal-orchestrate";
@@ -1043,8 +1054,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LiGoldragon/signal-orchestrate";
-          rev = "2b17beab3a79e937b73bc506f457fa342505de5f";
-          sha256 = "0nn506j80pv1mlbidqifgdgsax24h3nvhjqkxdfm40w3gbifkq00";
+          rev = "29bd345925a40786a407454e88e8199b93b8d917";
+          sha256 = "000v9wm39kmasbar6hf4m0m513ln28phpndxsghrb942b3kz519w";
         };
         libName = "signal_orchestrate";
         dependencies = [
@@ -1077,7 +1088,7 @@ rec {
           }
         ];
         features = {
-          "datom" = [ "dep:datom-codec" "dep:protos" ];
+          "datom" = [ "dep:datom-codec" "dep:protos" "signal/datom" ];
         };
         resolvedDefaultFeatures = [ "datom" ];
       };
