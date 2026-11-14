@@ -6,7 +6,7 @@
 
 use std::io::Cursor;
 
-use meta_signal_orchestrate::{ETHOS, Query, Response};
+use meta_signal_orchestrate::{ETHOS, Input, Output};
 use signal::{
     Answer, ByteViewable, ContractDigest, Contracted, Delivery, Dispatch, Ending, ExchangeLedger,
     ExchangeMinting, Exchanged, FrameCapacity, FrameReading, FrameWriting, Greeted, Handshake,
@@ -64,24 +64,24 @@ impl Configures for OrchestrateNexusConfiguration {
 
 #[test]
 fn the_meta_contract_is_identified_by_the_digest_of_its_own_source() {
-    assert_eq!(<Query as Contracted>::contract_digest(), META_DIGEST);
+    assert_eq!(<Input as Contracted>::contract_digest(), META_DIGEST);
     assert_eq!(
-        <Query as Contracted>::greeting(),
+        <Input as Contracted>::greeting(),
         Handshake {
             contract_digest: META_DIGEST
         }
     );
-    assert_eq!(<Query as Contracted>::CONTRACT_SOURCE, ETHOS);
+    assert_eq!(<Input as Contracted>::CONTRACT_SOURCE, ETHOS);
 }
 
 #[test]
 fn an_ordinary_peer_greeting_the_meta_socket_is_refused() {
     assert_eq!(
-        <Query as Contracted>::receipt(&<signal_orchestrate::Query as Contracted>::greeting()),
+        <Input as Contracted>::receipt(&<signal_orchestrate::Input as Contracted>::greeting()),
         HandshakeReceipt::GreetingRefused(HandshakeRejection::ContractMismatch(META_DIGEST))
     );
     assert_eq!(
-        <Query as Contracted>::receipt(&<Query as Contracted>::greeting()),
+        <Input as Contracted>::receipt(&<Input as Contracted>::greeting()),
         HandshakeReceipt::Greeted(META_DIGEST)
     );
 }
@@ -94,20 +94,20 @@ fn a_configure_is_one_exchange_answered_once_and_then_ended() {
 
     let opening = Dispatch::Open(Opening {
         exchange,
-        query: Query::Configure(OrchestrateNexusConfiguration::temporary()),
+        query: Input::Configure(OrchestrateNexusConfiguration::temporary()),
     });
     assert_eq!(opening.across(), opening);
 
-    let answer: Delivery<Response> = Delivery::Answer(Answer {
+    let answer: Delivery<Output> = Delivery::Answer(Answer {
         exchange,
-        response: Response::Configured(ConfigurationReceipt {
+        response: Output::Configured(ConfigurationReceipt {
             orchestrate_nexus_configuration: OrchestrateNexusConfiguration::temporary(),
             meta_configure_done: MetaConfigureDone(true),
         }),
     });
     assert_eq!(answer.across(), answer);
 
-    let ending: Delivery<Response> = Delivery::End(Ending::completed(exchange));
+    let ending: Delivery<Output> = Delivery::End(Ending::completed(exchange));
     let Delivery::End(received) = ending.across() else {
         panic!("a one-answer exchange ends after its answer");
     };

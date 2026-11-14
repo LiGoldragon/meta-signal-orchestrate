@@ -6,7 +6,7 @@ Ethos-zero 13.0.0 emits the committed `src/generated/signal.rs`, and
 the generator produces. That file is generated code, not a handwritten wire
 interface.
 
-The wire is signal 7.0.0's exchange layer. `Query` implements
+The wire is signal 7.0.0's exchange layer. `Input` implements
 `signal::Contracted` with `ETHOS` as its source, so the contract's identity is
 the FNV-1a digest of `ethos/signal.ethos`: a connection is greeted once
 (`Dispatch::Greet`), a peer built from another source is refused with

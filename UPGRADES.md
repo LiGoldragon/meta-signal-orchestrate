@@ -1,5 +1,20 @@
 # Upgrades
 
+## 6.0.0 — ethos-zero 27: Input, Output, Answering; signal-orchestrate 6.0.0
+
+The build reads `ethos/signal.ethos` with ethos-zero 27.0.0 (`8c95310`), and the
+contract selects `signal-orchestrate` 6.0.0 (`8335cf9`). `ethos/signal.ethos` is
+unchanged, so the contract digest is unchanged, and the variants keep their
+order, so the archived layout and the Datom text are unchanged.
+
+What changes is the Rust API. `Query` is `Input` and `Response` is `Output`, and
+`impl signal::Contracted` is on `Input`. The file now also generates
+`Answering`, one capability per input (`configure`,
+`reverse_meta_configuration`), and `impl Answerable for Input`: a Nexus
+answers an input with `input.answer(&nexus)`.
+
+Deploy in one step with `signal-orchestrate` 6.0.0.
+
 ## 5.1.0 — signal-orchestrate 5.1.0, signal 10.3.0, protos 0.33.0, datom-codec 0.33.0, ethos-zero 19.2.0
 
 The contract selects `signal-orchestrate` 5.1.0 (`df56`), `signal` 10.3.0 (`7afb`),

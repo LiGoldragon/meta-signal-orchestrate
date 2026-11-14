@@ -29,16 +29,51 @@ pub struct PeerRejection {
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum Query {
+pub enum Input {
     Configure(signal_orchestrate::OrchestrateNexusConfiguration),
     ReverseMetaConfiguration,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum Response {
+pub enum Output {
     Configured(signal_orchestrate::ConfigurationReceipt),
     OrdinaryConfigurationReopened(signal_orchestrate::ConfigurationReceipt),
     ConfigurationRejected(ConfigurationRejection),
     PeerRefused(PeerRejection),
+}
+#[rustfmt::skip]
+#[allow(clippy::result_large_err, clippy::ptr_arg, clippy::borrowed_box)]
+pub trait Answering {
+    fn configure(
+        &self,
+        orchestrate_nexus_configuration: &signal_orchestrate::OrchestrateNexusConfiguration,
+    ) -> std::result::Result<signal_orchestrate::ConfigurationReceipt, Output>;
+    fn reverse_meta_configuration(
+        &self,
+    ) -> std::result::Result<signal_orchestrate::ConfigurationReceipt, Output>;
+}
+#[rustfmt::skip]
+pub trait Answerable {
+    fn answer<Nexus: Answering>(&self, nexus: &Nexus) -> Output;
+}
+#[rustfmt::skip]
+impl Answerable for Input {
+    fn answer<Nexus: Answering>(&self, nexus: &Nexus) -> Output {
+        match self {
+            Input::Configure(carried) => {
+                nexus
+                    .configure(carried)
+                    .map_or_else(|refusal| refusal, Output::Configured)
+            }
+            Input::ReverseMetaConfiguration => {
+                nexus
+                    .reverse_meta_configuration()
+                    .map_or_else(
+                        |refusal| refusal,
+                        Output::OrdinaryConfigurationReopened,
+                    )
+            }
+        }
+    }
 }

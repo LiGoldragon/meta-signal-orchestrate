@@ -12,8 +12,8 @@ pub use generated::signal::*;
 /// artefact its wire identity is computed over.
 pub const ETHOS: &str = include_str!("../ethos/signal.ethos");
 
-/// The querying side is the side that greets, so the identity is borne by
-/// the query root.
-impl signal::Contracted for Query {
+/// The side that sends inputs is the side that greets, so the identity is
+/// borne by Input.
+impl signal::Contracted for Input {
     const CONTRACT_SOURCE: &'static str = ETHOS;
 }

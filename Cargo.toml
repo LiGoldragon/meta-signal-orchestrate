@@ -1,6 +1,6 @@
 [package]
 name = "meta-signal-orchestrate"
-version = "5.1.0"
+version = "6.0.0"
 edition = "2024"
 rust-version = "1.89"
 description = "Meta Signal contract for Orchestrate configuration."
@@ -10,10 +10,10 @@ build = "build.rs"
 default = []
 datom = ["dep:datom-codec", "dep:protos", "signal-orchestrate/datom"]
 [dependencies]
-signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate", rev = "df564c6", default-features = false }
+signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate", rev = "8335cf9", default-features = false }
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "eabead4", optional = true }
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "3c7ade3", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 signal = { git = "https://github.com/LiGoldragon/signal", rev = "7afb68b", default-features = false }
 [build-dependencies]
-ethos-zero = { git = "https://github.com/LiGoldragon/ethos-zero", rev = "5a5daca" }
+ethos-zero = { git = "https://github.com/LiGoldragon/ethos-zero", rev = "8c95310" }
