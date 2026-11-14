@@ -1131,19 +1131,19 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LiGoldragon/signal-orchestrate";
-          rev = "e4fda9b18c39386d1a81aef9b8a129862f4e8137";
-          sha256 = "1j9hnf82b80pxmsf84zrbn52w1gv47nrh0mbn350gq4fdskvhalm";
+          rev = "7b65ea685aae24160552decdde7d8ffad992d286";
+          sha256 = "1gjf4f9cj7plahrr7q5m6i561i88v6mmh28qis2cjx5zyh16sgvp";
         };
         libName = "signal_orchestrate";
         dependencies = [
           {
             name = "datom-codec";
-            packageId = "datom-codec 0.33.0";
+            packageId = "datom-codec 0.33.1";
             optional = true;
           }
           {
             name = "protos";
-            packageId = "git+https://github.com/LiGoldragon/protos?rev=3c7ade3#0.33.0";
+            packageId = "git+https://github.com/LiGoldragon/protos?rev=c93b598#0.33.0";
             optional = true;
           }
           {

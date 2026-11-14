@@ -10,7 +10,7 @@ build = "build.rs"
 default = []
 datom = ["dep:datom-codec", "dep:protos", "signal-orchestrate/datom"]
 [dependencies]
-signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate", rev = "e4fda9b", default-features = false }
+signal-orchestrate = { git = "https://github.com/LiGoldragon/signal-orchestrate", rev = "7b65ea6", default-features = false }
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "09a0526", optional = true }
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "c93b598", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
