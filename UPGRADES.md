@@ -1,13 +1,22 @@
 # Upgrades
 
-## 6.0.0 — ethos-zero 27: Input, Output, Answering; signal-orchestrate 6.0.0
+## 6.0.0 — ethos-zero 28: Input, Output, Answering; Refused.Store; signal-orchestrate 6.0.0
 
-The build reads `ethos/signal.ethos` with ethos-zero 27.0.0 (`8c95310`), and the
-contract selects `signal-orchestrate` 6.0.0 (`8335cf9`). `ethos/signal.ethos` is
-unchanged, so the contract digest is unchanged, and the variants keep their
-order, so the archived layout and the Datom text are unchanged.
+The build reads `ethos/signal.ethos` with ethos-zero 28.0.0 (`970459d`), and the
+contract selects `signal-orchestrate` 6.0.0 (`bf21c0c`).
 
-What changes is the Rust API. `Query` is `Input` and `Response` is `Output`, and
+- `Output` gains `Refused(signal_orchestrate::Refusal)`, after every other
+  output, so the archived tag of every earlier output is unchanged.
+  `Refused.Store.«…»` answers an input the Nexus store could not carry out,
+  a commit that failed among them; before, such an input had no output and
+  the Nexus ended the connection. The `Refusal` is the ordinary contract's
+  own, imported.
+- `ethos/signal.ethos` changes with it, so the contract digest changes
+  (`-5_802_613_112_951_910_567`): a meta peer of 5.1.0 and one of 6.0.0
+  refuse each other at the greeting, and the meta client moves with its
+  Nexus.
+
+What changes in the Rust API: `Query` is `Input` and `Response` is `Output`, and
 `impl signal::Contracted` is on `Input`. The file now also generates
 `Answering`, one capability per input (`configure`,
 `reverse_meta_configuration`), and `impl Answerable for Input`: a Nexus

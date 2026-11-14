@@ -19,7 +19,7 @@ use signal_orchestrate::{
 
 /// FNV-1a over exactly the bytes of `ethos/signal.ethos`, as a signed 64-bit
 /// integer, computed in Python from the published algorithm.
-const META_DIGEST: ContractDigest = ContractDigest(-8_743_676_413_678_169_448);
+const META_DIGEST: ContractDigest = ContractDigest(-5_802_613_112_951_910_567);
 
 /// Put a value on a byte stream the way a socket carries it, and read it back.
 trait CrossesTheWire: Sized {

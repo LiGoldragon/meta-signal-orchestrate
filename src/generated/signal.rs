@@ -41,6 +41,7 @@ pub enum Output {
     OrdinaryConfigurationReopened(signal_orchestrate::ConfigurationReceipt),
     ConfigurationRejected(ConfigurationRejection),
     PeerRefused(PeerRejection),
+    Refused(signal_orchestrate::Refusal),
 }
 #[rustfmt::skip]
 #[allow(clippy::result_large_err, clippy::ptr_arg, clippy::borrowed_box)]

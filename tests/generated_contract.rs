@@ -4,7 +4,7 @@ use meta_signal_orchestrate::{
 use signal::{ByteViewable, Restorable, Signal, Signalizable};
 use signal_orchestrate::{
     ConfigurationPath, ConfigurationReceipt, MetaConfigureDone, MetaSocketPath,
-    OrchestrateNexusConfiguration, OrdinarySocketPath,
+    OrchestrateNexusConfiguration, OrdinarySocketPath, Refusal,
 };
 
 fn configure() -> OrchestrateNexusConfiguration {
@@ -81,4 +81,30 @@ fn a_refused_peer_is_vocabulary_carrying_the_user_it_refused() {
     let signal = response.signalize().expect("signalize refusal");
     let received = Signal::<Output>::from(signal.bytes().to_vec());
     assert_eq!(received.restore().expect("restore refusal"), response);
+}
+
+#[test]
+fn a_store_refusal_is_an_output_of_the_meta_contract() {
+    let refusal = Output::Refused(Refusal::Store("the commit failed".into()));
+    let received = Signal::<Output>::from(
+        refusal
+            .signalize()
+            .expect("signalize refusal")
+            .bytes()
+            .to_vec(),
+    );
+    assert_eq!(received.restore().expect("restore refusal"), refusal);
+}
+
+#[cfg(feature = "datom")]
+#[test]
+fn a_store_refusal_is_written_as_the_ordinary_contract_writes_it() {
+    use datom_codec::Datomizable;
+    use protos::{Protosizable, Textualizable};
+
+    let refusal = Output::Refused(Refusal::Store("the commit failed".into()));
+    assert_eq!(
+        refusal.datomize(vec![]).protosize().textualize(),
+        "Refused.Store.«the commit failed»"
+    );
 }

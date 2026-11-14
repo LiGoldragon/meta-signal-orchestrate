@@ -5,11 +5,15 @@
 ; query opens an exchange the peer names, is answered with exactly one
 ; frame on that exchange, and the exchange then ends. Nothing here
 ; streams.
+;
+; Refused.Store answers an input the Nexus store could not carry out, a
+; commit that failed among them, with the store's own words; the Refusal
+; is the ordinary contract's own.
 Signal
-[ signal_orchestrate:[ OrchestrateNexusConfiguration ConfigurationReceipt ] ]
+[ signal_orchestrate:[ OrchestrateNexusConfiguration ConfigurationReceipt Refusal ] ]
 [ Configure.OrchestrateNexusConfiguration ReverseMetaConfiguration ]
 [ Configured.ConfigurationReceipt OrdinaryConfigurationReopened.ConfigurationReceipt
-  ConfigurationRejected.ConfigurationRejection PeerRefused.PeerRejection ]
+  ConfigurationRejected.ConfigurationRejection PeerRefused.PeerRejection Refused.Refusal ]
 [ ConfigurationRejectionReason.[ InvalidConfiguration ]
   ConfigurationRejection.{ ConfigurationRejectionReason }
   PeerUserId.Integer

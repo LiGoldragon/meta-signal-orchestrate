@@ -105,8 +105,8 @@ dependencies = [
 
 [[package]]
 name = "ethos-zero"
-version = "27.0.0"
-source = "git+https://github.com/LiGoldragon/ethos-zero?rev=8c95310#8c95310c4c372cfe115cdebc3e85021b98cf2974"
+version = "28.0.0"
+source = "git+https://github.com/LiGoldragon/ethos-zero?rev=970459d#970459d100ddee5f62a76c05642ecfabefba6329"
 dependencies = [
  "datom-codec 0.33.1",
  "prettyplease",
@@ -173,7 +173,7 @@ name = "meta-signal-orchestrate"
 version = "6.0.0"
 dependencies = [
  "datom-codec 0.33.0",
- "ethos-zero 27.0.0",
+ "ethos-zero 28.0.0",
  "protos 0.33.0 (git+https://github.com/LiGoldragon/protos?rev=3c7ade3)",
  "rkyv",
  "signal",
@@ -343,10 +343,10 @@ dependencies = [
 [[package]]
 name = "signal-orchestrate"
 version = "6.0.0"
-source = "git+https://github.com/LiGoldragon/signal-orchestrate?rev=8335cf9#8335cf90e72ef343d4cb5b19f0801801555a070a"
+source = "git+https://github.com/LiGoldragon/signal-orchestrate?rev=bf21c0c#bf21c0c7182b96db3f67ea41d88392936742f060"
 dependencies = [
  "datom-codec 0.33.0",
- "ethos-zero 27.0.0",
+ "ethos-zero 28.0.0",
  "protos 0.33.0 (git+https://github.com/LiGoldragon/protos?rev=3c7ade3)",
  "rkyv",
  "signal",
