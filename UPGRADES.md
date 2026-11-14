@@ -3,7 +3,9 @@
 ## 6.0.0 — ethos-zero 28: Input, Output, Answering; Refused.Store; signal-orchestrate 6.0.0
 
 The build reads `ethos/signal.ethos` with ethos-zero 28.0.0 (`970459d`), and the
-contract selects `signal-orchestrate` 6.0.0 (`bf21c0c`).
+contract selects `signal-orchestrate` 6.0.0 (`8d675ca`). This file imports
+nothing that revision changed, so its generated module and digest are as
+under `bf21c0c`.
 
 - `Output` gains `Refused(signal_orchestrate::Refusal)`, after every other
   output, so the archived tag of every earlier output is unchanged.
